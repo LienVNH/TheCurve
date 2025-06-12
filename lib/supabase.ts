@@ -53,8 +53,8 @@ class LargeSecureStore {
   }
 }
 
-const supabaseUrl = process.env.EXPO_PUBLIC_URL;
-const supabaseAnonKey = process.env.EXPO_PUBLIC_ANONKEY;
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANONKEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error("Supabase URL and Anon Key must be defined in environment variables.");
