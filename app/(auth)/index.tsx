@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#f0f0f0",
+    backgroundColor: "#51910D",
   },
   title: {
     fontSize: 24,
@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   button: {
-    backgroundColor: "#0088cc",
+    backgroundColor: "#",
     paddingVertical: 12,
     paddingHorizontal: 30,
     borderRadius: 6,

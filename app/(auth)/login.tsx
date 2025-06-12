@@ -1,56 +1,74 @@
-import React, { useState } from "react";
-import { Alert, StyleSheet, TextInput, View, Button, Text } from "react-native";
+import { useState } from "react";
 import { supabase } from "../../lib/supabase";
+import { useRouter } from "expo-router";
+import { View, TextInput, Button, Text, Alert, StyleSheet } from "react-native";
 
-export default function Auth() {
+export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isRegister, setIsRegister] = useState(false); 
+  const router = useRouter();
 
-  async function signInWithEmail() {
+  async function handleLogin() {
     setLoading(true);
+    if (!email || !password) {
+      Alert.alert("Vul je e-mail en wachtwoord in.");
+      setLoading(false);
+      return;
+    }
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) Alert.alert(error.message);
     setLoading(false);
+    if (error) Alert.alert("Fout", error.message);
+    
   }
 
-  async function signUpWithEmail() {
+  async function handleRegister() {
     setLoading(true);
-    const {
-      data: { session },
-      error,
-    } = await supabase.auth.signUp({ email, password });
-    if (error) Alert.alert(error.message);
-    if (!session) Alert.alert("Check je inbox voor bevestiging van je registratie!");
+    if (!email || !password) {
+      Alert.alert("Vul je e-mail en wachtwoord in.");
+      setLoading(false);
+      return;
+    }
+    const { error, data } = await supabase.auth.signUp({ email, password });
     setLoading(false);
+    if (error) {
+      Alert.alert("Fout", error.message);
+    } else {
+      Alert.alert("Registratie gelukt!", "Check je inbox voor bevestiging.");
+      setIsRegister(false);
+    }
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Welkom terug</Text>
-
-      <TextInput placeholder="Email" value={email} onChangeText={setEmail} style={styles.input} />
-
+      <Text style={styles.title}>{isRegister ? "Account aanmaken" : "Welkom terug"}</Text>
+      <TextInput placeholder="Email" value={email} onChangeText={setEmail} style={styles.input} autoCapitalize="none" />
       <TextInput placeholder="Wachtwoord" value={password} onChangeText={setPassword} secureTextEntry style={styles.input} />
 
-      <Button title="Login" onPress={signInWithEmail} disabled={loading} />
-      <Button title="Registreren" onPress={signUpWithEmail} disabled={loading} />
+      <Button title={isRegister ? "Registreren" : "Login"} onPress={isRegister ? handleRegister : handleLogin} disabled={loading} />
+
+      <Text style={{ marginTop: 20, textAlign: "center", color: "#2E7D32" }} onPress={() => setIsRegister(r => !r)}>
+        {isRegister ? "Heb je al een account? Inloggen" : "Nog geen account? Registreren"}
+      </Text>
+      
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+
     marginTop: 40,
     padding: 16,
     flex: 1,
-    backgroundColor: "#FBFCE4", // uit je theme
+    backgroundColor: "#234503",
   },
   title: {
     fontSize: 24,
     marginBottom: 24,
     fontWeight: "bold",
-    color: "#1A1A1A", // uit je theme
+    color: "#1A1A1A",
   },
   input: {
     height: 40,

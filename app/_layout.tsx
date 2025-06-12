@@ -1,22 +1,10 @@
-import { Slot } from "expo-router";
-import * as SplashScreen from "expo-splash-screen";
-import { useFonts, Poppins_400Regular } from "@expo-google-fonts/poppins";
-import { useEffect } from "react";
-
-SplashScreen.preventAutoHideAsync().catch(() => {});
+import { AuthProvider } from "./context/AuthContext";
+import { Stack } from "expo-router";
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({
-    Poppins_400Regular,
-  });
-
-  useEffect(() => {
-    if (fontsLoaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [fontsLoaded]);
-
-  if (!fontsLoaded) return null;
-
-  return <Slot />;
+  return (
+    <AuthProvider>
+      <Stack screenOptions={{ headerShown: false }} />
+    </AuthProvider>
+  );
 }
