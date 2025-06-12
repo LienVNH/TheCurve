@@ -3,5 +3,5 @@
   "compilerOptions": {
     "strict": true
   },
-  "include": ["app", "theme"]
+  "include": ["app", "app/theme"]
 }

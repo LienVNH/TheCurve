@@ -1,82 +1,51 @@
 import { useState } from "react";
+import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
 import { supabase } from "../../lib/supabase";
+import { globalStyles } from "../theme/globalStyles";
 import { useRouter } from "expo-router";
-import { View, TextInput, Button, Text, Alert, StyleSheet } from "react-native";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [isRegister, setIsRegister] = useState(false); 
   const router = useRouter();
 
-  async function handleLogin() {
-    setLoading(true);
+  const handleLogin = async () => {
     if (!email || !password) {
       Alert.alert("Vul je e-mail en wachtwoord in.");
-      setLoading(false);
       return;
     }
     const { error } = await supabase.auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) Alert.alert("Fout", error.message);
-    
-  }
-
-  async function handleRegister() {
-    setLoading(true);
-    if (!email || !password) {
-      Alert.alert("Vul je e-mail en wachtwoord in.");
-      setLoading(false);
-      return;
-    }
-    const { error, data } = await supabase.auth.signUp({ email, password });
-    setLoading(false);
     if (error) {
       Alert.alert("Fout", error.message);
     } else {
-      Alert.alert("Registratie gelukt!", "Check je inbox voor bevestiging.");
-      setIsRegister(false);
+      router.replace("/(tabs)/home"); // Of je gewenste pagina
     }
-  }
+  };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>{isRegister ? "Account aanmaken" : "Welkom terug"}</Text>
-      <TextInput placeholder="Email" value={email} onChangeText={setEmail} style={styles.input} autoCapitalize="none" />
-      <TextInput placeholder="Wachtwoord" value={password} onChangeText={setPassword} secureTextEntry style={styles.input} />
+    <View style={globalStyles.container}>
+      <Text style={globalStyles.title}>Inloggen</Text>
 
-      <Button title={isRegister ? "Registreren" : "Login"} onPress={isRegister ? handleRegister : handleLogin} disabled={loading} />
+      <Text style={globalStyles.textDark}>E-mailadres</Text>
+      <TextInput
+        style={globalStyles.input}
+        value={email}
+        onChangeText={setEmail}
+        placeholder="E-mailadres"
+        keyboardType="email-address"
+        autoCapitalize="none"
+      />
 
-      <Text style={{ marginTop: 20, textAlign: "center", color: "#2E7D32" }} onPress={() => setIsRegister(r => !r)}>
-        {isRegister ? "Heb je al een account? Inloggen" : "Nog geen account? Registreren"}
-      </Text>
-      
+      <Text style={globalStyles.textDark}>Wachtwoord</Text>
+      <TextInput style={globalStyles.input} value={password} onChangeText={setPassword} placeholder="Wachtwoord" secureTextEntry />
+
+      <TouchableOpacity style={globalStyles.button} onPress={handleLogin}>
+        <Text style={globalStyles.buttonText}>Login</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={() => router.push("/auth/register")}>
+        <Text style={[globalStyles.text, { color: "#F4ED10", textAlign: "center", marginTop: 10 }]}>Nog geen account? Registreer!</Text>
+      </TouchableOpacity>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-
-    marginTop: 40,
-    padding: 16,
-    flex: 1,
-    backgroundColor: "#234503",
-  },
-  title: {
-    fontSize: 24,
-    marginBottom: 24,
-    fontWeight: "bold",
-    color: "#1A1A1A",
-  },
-  input: {
-    height: 40,
-    borderColor: "#CED4DA",
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 8,
-    marginBottom: 12,
-    backgroundColor: "#FFF",
-  },
-});

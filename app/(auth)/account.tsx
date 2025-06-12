@@ -1,95 +1,101 @@
-import { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import { supabase } from "../../lib/supabase";
-import { StyleSheet, View, Alert } from "react-native";
-import { Button, Input } from "@rneui/themed";
-import { Session } from "@supabase/supabase-js";
-export default function Account({ session }: { session: Session }) {
-  const [loading, setLoading] = useState(true);
+import { useAuth } from "../context/AuthContext";
+import { globalStyles } from "../theme/globalStyles";
+import { useRouter } from "expo-router";
+import Error from "../components/Error"; 
+
+export default function AccountScreen() {
+  const { user } = useAuth();
+  const router = useRouter();
   const [username, setUsername] = useState("");
-  const [website, setWebsite] = useState("");
-  const [avatarUrl, setAvatarUrl] = useState("");
+  const [age, setAge] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
-    if (session) getProfile();
-  }, [session]);
+    if (!user) {
+      router.replace("/auth/login");
+      return;
+    }
+    getProfile();
+  }, [user]);
+
   async function getProfile() {
     try {
       setLoading(true);
-      if (!session?.user) throw new Error("No user on the session!");
-      const { data, error, status } = await supabase.from("profiles").select(`username, website, avatar_url`).eq("id", session?.user.id).single();
-      if (error && status !== 406) {
-        throw error;
-      }
+      setError(null);
+      if (!user) throw "Geen gebruiker gevonden!";
+      const { data, error } = await supabase.from("profiles").select("username, age").eq("user_id", user.id).single();
+      if (error) throw error.message;
       if (data) {
-        setUsername(data.username);
-        setWebsite(data.website);
-        setAvatarUrl(data.avatar_url);
+        setUsername(data.username ?? "");
+        setAge(data.age ?? "");
       }
-    } catch (error) {
-      if (error instanceof Error) {
-        Alert.alert(error.message);
-      }
+    } catch (err) {
+      setError(
+        typeof err === "string"
+          ? err
+          : err && typeof err === "object" && "message" in err && typeof (err as any).message === "string"
+          ? (err as any).message
+          : "Onbekende fout"
+      );
     } finally {
       setLoading(false);
     }
   }
-  async function updateProfile({ username, website, avatar_url }: { username: string; website: string; avatar_url: string }) {
+
+  async function updateProfile() {
     try {
       setLoading(true);
-      if (!session?.user) throw new Error("No user on the session!");
+      setError(null);
+      if (!user) throw "Geen gebruiker gevonden!";
       const updates = {
-        id: session?.user.id,
+        user_id: user.id,
         username,
-        website,
-        avatar_url,
+        age,
         updated_at: new Date(),
       };
       const { error } = await supabase.from("profiles").upsert(updates);
-      if (error) {
-        throw error;
-      }
-    } catch (error) {
-      if (error instanceof Error) {
-        Alert.alert(error.message);
-      }
+      if (error) throw error.message;
+    } catch (err) {
+      setError(
+        typeof err === "string"
+          ? err
+          : err && typeof err === "object" && "message" in err && typeof (err as any).message === "string"
+          ? (err as any).message
+          : "Onbekende fout"
+      );
     } finally {
       setLoading(false);
     }
   }
+
+  async function handleLogout() {
+    await supabase.auth.signOut();
+    router.replace("/auth/login");
+  }
+
   return (
-    <View style={styles.container}>
-      <View style={[styles.verticallySpaced, styles.mt20]}>
-        <Input label="Email" value={session?.user?.email} disabled />
-      </View>
-      <View style={styles.verticallySpaced}>
-        <Input label="Username" value={username || ""} onChangeText={text => setUsername(text)} />
-      </View>
-      <View style={styles.verticallySpaced}>
-        <Input label="Website" value={website || ""} onChangeText={text => setWebsite(text)} />
-      </View>
-      <View style={[styles.verticallySpaced, styles.mt20]}>
-        <Button
-          title={loading ? "Loading ..." : "Update"}
-          onPress={() => updateProfile({ username, website, avatar_url: avatarUrl })}
-          disabled={loading}
-        />
-      </View>
-      <View style={styles.verticallySpaced}>
-        <Button title="Sign Out" onPress={() => supabase.auth.signOut()} />
-      </View>
+    <View style={globalStyles.container}>
+      <Text style={globalStyles.title}>Account</Text>
+      {/* Render component hier, NOOIT new Error(...)! */}
+      <Error error={error} />
+
+      <Text style={globalStyles.textDark}>Gebruikersnaam</Text>
+      <TextInput style={globalStyles.input} value={username} onChangeText={setUsername} editable={!loading} />
+
+      <Text style={globalStyles.textDark}>Leeftijd</Text>
+      <TextInput style={globalStyles.input} value={age} onChangeText={setAge} keyboardType="numeric" editable={!loading} />
+
+      <TouchableOpacity style={globalStyles.button} onPress={updateProfile} disabled={loading}>
+        <Text style={globalStyles.buttonText}>{loading ? "Bezig..." : "Opslaan"}</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={globalStyles.button} onPress={handleLogout} disabled={loading}>
+        <Text style={globalStyles.buttonText}>Uitloggen</Text>
+      </TouchableOpacity>
     </View>
   );
 }
-const styles = StyleSheet.create({
-  container: {
-    marginTop: 40,
-    padding: 12,
-  },
-  verticallySpaced: {
-    paddingTop: 4,
-    paddingBottom: 4,
-    alignSelf: "stretch",
-  },
-  mt20: {
-    marginTop: 20,
-  },
-});

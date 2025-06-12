@@ -1,43 +1,19 @@
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import { router } from "expo-router";
+import { globalStyles } from "../theme/globalStyles";
 
 export default function AuthIndex() {
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Welkom bij The Curve</Text>
+    <View style={[globalStyles.container, { justifyContent: "center", alignItems: "center" }]}>
+      <Text style={globalStyles.title}>Welkom!</Text>
 
-      <TouchableOpacity style={styles.button} onPress={() => router.push("/login")}>
-        <Text style={styles.buttonText}>Login</Text>
+      <TouchableOpacity style={globalStyles.button} onPress={() => router.push("/auth/login")}>
+        <Text style={globalStyles.buttonText}>Login</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={() => router.push("/register")}>
-        <Text style={styles.buttonText}>Registreren</Text>
+      <TouchableOpacity style={globalStyles.button} onPress={() => router.push("/auth/register")}>
+        <Text style={globalStyles.buttonText}>Registreren</Text>
       </TouchableOpacity>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#51910D",
-  },
-  title: {
-    fontSize: 24,
-    marginBottom: 40,
-    fontWeight: "bold",
-  },
-  button: {
-    backgroundColor: "#",
-    paddingVertical: 12,
-    paddingHorizontal: 30,
-    borderRadius: 6,
-    marginVertical: 10,
-  },
-  buttonText: {
-    color: "white",
-    fontSize: 16,
-  },
-});

@@ -1,0 +1,61 @@
+export const theme = {
+  colors: {
+    // Niveaus van donkergroen (van zacht naar diep)
+    greenDarkest: "#15381B", // Voor buttons, headers, nav, of card background
+    greenDark: "#1E5128", // Hoofd-achtergrond
+    green: "#3C7C40", // Lichte tinten voor borders, icons
+    greenLight: "#E3F6D3", // Heel lichte groene achtergrond
+
+    // Geel-wit tinten
+    yellowLightest: "#FFFDEA", // Hoofd-achtergrond voor licht
+    yellow: "#FDF6C3", // Cards, vlakken
+
+    // Grijs, neutraal, accent
+    white: "#FFFFFF",
+    offWhite: "#F7F7EF",
+    black: "#262626",
+    border: "#DDE2D4",
+    textDark: "#234503", // Voor op lichte bg
+    textLight: "#FFFDEA", // Voor op donkergroen bg
+
+    // Accentkleuren
+    primary: "#1E5128", // Donkergroen
+    accent: "#F4ED10", // Subtiel geel, niet als full bg gebruiken
+    danger: "#FF4242",
+  },
+  font: {
+    family: "System",
+    size: {
+      sm: 14,
+      md: 16,
+      lg: 20,
+      xl: 24,
+    },
+    weight: {
+      normal: "400",
+      bold: "700",
+    },
+  },
+  spacing: {
+    xs: 4,
+    sm: 8,
+    md: 16,
+    lg: 24,
+    xl: 40,
+  },
+  borderRadius: {
+    sm: 6,
+    md: 12,
+    lg: 18,
+    xl: 32,
+  },
+  shadow: {
+    card: {
+      shadowColor: "#15381B",
+      shadowOpacity: 0.08,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 4 },
+      elevation: 2,
+    },
+  },
+};

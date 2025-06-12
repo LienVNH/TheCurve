@@ -1,104 +1,133 @@
 import { useState } from "react";
-import { View, Text, TextInput, StyleSheet, TouchableOpacity, Linking } from "react-native";
-import { supabase } from "../../lib/supabase"; 
-
+import { View, Text, TextInput, TouchableOpacity, Alert, Linking } from "react-native";
+import { supabase } from "../../lib/supabase";
+import { globalStyles } from "../theme/globalStyles";
+import { useRouter } from "expo-router";
 
 export default function RegisterScreen() {
   const [username, setUsername] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
-  const [diabetesSince, setDiabetesSince] = useState("");
+  const [password, setPassword] = useState("");
+  const [repeatPassword, setRepeatPassword] = useState("");
   const [age, setAge] = useState("");
-  const [agreed, setAgreed] = useState(false);
+  const [diabetesSince, setDiabetesSince] = useState("");
+  const [whatHope, setWhatHope] = useState("");
+  const [termsAccepted, setTermsAccepted] = useState(false);
+
+  const router = useRouter();
 
   const handleRegister = async () => {
-    if (!agreed) {
-      alert("Je moet akkoord gaan met de algemene voorwaarden.");
+    if (!termsAccepted) {
+      Alert.alert("Je moet akkoord gaan met de algemene voorwaarden.");
+      return;
+    }
+    if (!username.trim() || !email.trim() || !password.trim() || !repeatPassword.trim()) {
+      Alert.alert("Vul alle verplichte velden in.");
+      return;
+    }
+    if (password !== repeatPassword) {
+      Alert.alert("Wachtwoorden komen niet overeen.");
+      return;
+    }
+    if (password.length < 8) {
+      Alert.alert("Wachtwoord moet minstens 8 tekens bevatten.");
       return;
     }
 
+    // 1. Account aanmaken
     const { data, error } = await supabase.auth.signUp({
       email,
-      password: email + age, // Tijdelijke dummy-password, beter om dit nog te verbeteren
-      options: {
-        data: {
-          username,
-          first_name: firstName,
-          last_name: lastName,
-          age,
-          diabetes_since: diabetesSince,
-        },
-      },
+      password,
     });
 
-    if (error) alert(error.message);
-    else alert("Check je e-mail om te bevestigen!");
+    if (error) {
+      Alert.alert("Fout", error.message);
+      return;
+    }
+
+    // 2. Profiel toevoegen in 'profiles' (zie vorige instructie)
+    if (data?.user) {
+      const { error: profileError } = await supabase.from("profiles").insert([
+        {
+          user_id: data.user.id,
+          username,
+          age,
+          diabetes_since: diabetesSince,
+          what_hope: whatHope,
+          terms_accepted: true,
+        },
+      ]);
+
+      if (profileError) {
+        Alert.alert("Fout bij profiel aanmaken", profileError.message);
+        return;
+      }
+    }
+
+    Alert.alert("Registratie gelukt!", "Check je inbox voor bevestiging. Na bevestigen kan je inloggen.", [
+      { text: "Naar login", onPress: () => router.replace("/auth/login") },
+    ]);
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Registreren</Text>
+    <View style={globalStyles.container}>
+      <Text style={globalStyles.title}>Registreren</Text>
 
-      <TextInput placeholder="Gebruikersnaam" style={styles.input} value={username} onChangeText={setUsername} />
-      <TextInput placeholder="Voornaam" style={styles.input} value={firstName} onChangeText={setFirstName} />
-      <TextInput placeholder="Achternaam" style={styles.input} value={lastName} onChangeText={setLastName} />
-      <TextInput placeholder="E-mailadres" style={styles.input} value={email} onChangeText={setEmail} keyboardType="email-address" />
-      <TextInput placeholder="Leeftijd" style={styles.input} value={age} onChangeText={setAge} keyboardType="numeric" />
-      <TextInput placeholder="Sinds wanneer heb je diabetes?" style={styles.input} value={diabetesSince} onChangeText={setDiabetesSince} />
+      <Text style={globalStyles.textDark}>Gebruikersnaam *</Text>
+      <TextInput
+        style={globalStyles.input}
+        value={username}
+        onChangeText={setUsername}
+        placeholder="Kies een unieke gebruikersnaam"
+        autoCapitalize="none"
+      />
 
-      <TouchableOpacity onPress={() => setAgreed(!agreed)}>
-        <Text style={styles.checkbox}>
-          {agreed ? "☑" : "☐"} Ik ga akkoord met de{" "}
-          <Text style={styles.link} onPress={() => Linking.openURL("/terms")}>
+      <Text style={globalStyles.textDark}>E-mailadres *</Text>
+      <TextInput
+        style={globalStyles.input}
+        value={email}
+        onChangeText={setEmail}
+        placeholder="E-mailadres"
+        keyboardType="email-address"
+        autoCapitalize="none"
+      />
+
+      <Text style={globalStyles.textDark}>Wachtwoord *</Text>
+      <TextInput style={globalStyles.input} value={password} onChangeText={setPassword} placeholder="Wachtwoord" secureTextEntry />
+
+      <Text style={globalStyles.textDark}>Herhaal wachtwoord *</Text>
+      <TextInput
+        style={globalStyles.input}
+        value={repeatPassword}
+        onChangeText={setRepeatPassword}
+        placeholder="Herhaal wachtwoord"
+        secureTextEntry
+      />
+
+      <Text style={globalStyles.textDark}>Leeftijd</Text>
+      <TextInput style={globalStyles.input} value={age} onChangeText={setAge} placeholder="Leeftijd" keyboardType="numeric" />
+
+      <Text style={globalStyles.textDark}>Sinds wanneer heb je diabetes type 1?</Text>
+      <TextInput style={globalStyles.input} value={diabetesSince} onChangeText={setDiabetesSince} placeholder="bv. 01/09/2001" />
+
+      <Text style={globalStyles.textDark}>Wat hoop je uit deze app te halen?</Text>
+      <TextInput style={globalStyles.input} value={whatHope} onChangeText={setWhatHope} placeholder="Tips, vrienden, inspiratie..." />
+
+      <TouchableOpacity style={globalStyles.checkboxRow} onPress={() => setTermsAccepted(!termsAccepted)} activeOpacity={0.7}>
+        <View style={[globalStyles.checkboxBox, termsAccepted && { backgroundColor: "#1E5128" }]}>
+          {termsAccepted && <Text style={{ color: "#FFF", fontWeight: "bold" }}>✓</Text>}
+        </View>
+        <Text style={globalStyles.textDark}>
+          Ik ga akkoord met de{" "}
+          <Text style={{ textDecorationLine: "underline", color: "#F4ED10" }} onPress={() => Linking.openURL("/terms")}>
             algemene voorwaarden
           </Text>
         </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity style={styles.button} onPress={handleRegister}>
-        <Text style={styles.buttonText}>Account aanmaken</Text>
+      <TouchableOpacity style={globalStyles.button} onPress={handleRegister}>
+        <Text style={globalStyles.buttonText}>Account aanmaken</Text>
       </TouchableOpacity>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 20,
-    justifyContent: "center",
-    backgroundColor: "#fff",
-  },
-  title: {
-    fontSize: 24,
-    marginBottom: 20,
-    fontWeight: "bold",
-    textAlign: "center",
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 10,
-    borderRadius: 6,
-    marginBottom: 10,
-  },
-  checkbox: {
-    marginBottom: 15,
-    color: "#333",
-  },
-  link: {
-    fontWeight: "bold",
-    color: "#0088cc",
-  },
-  button: {
-    backgroundColor: "#0088cc",
-    paddingVertical: 12,
-    borderRadius: 6,
-    alignItems: "center",
-  },
-  buttonText: {
-    color: "white",
-    fontSize: 16,
-  },
-});
