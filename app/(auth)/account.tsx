@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, TouchableOpacity } from "react-native";
 import { supabase } from "../../lib/supabase";
-import { useAuth } from "../context/AuthContext";
-import { globalStyles } from "../theme/globalStyles";
+import { useAuth } from "../../context/AuthContext";
+import { globalStyles } from "../../theme/globalStyles";
 import { useRouter } from "expo-router";
-import Error from "../components/Error"; 
+import Error from "../../components/Error";
 
 export default function AccountScreen() {
   const { user } = useAuth();

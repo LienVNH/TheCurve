@@ -19,17 +19,19 @@ export const theme = {
     textLight: "#FFFDEA", // Voor op donkergroen bg
 
     // Accentkleuren
-    primary: "#1E5128", // Donkergroen
-    accent: "#F4ED10", // Subtiel geel, niet als full bg gebruiken
+    primary: "#1E5128",
+    succes: "#84E567",
+    warning: "#F4ED10"// Donkergroen
+    , // Subtiel geel, niet als full bg gebruiken
     danger: "#FF4242",
   },
   font: {
     family: "System",
     size: {
-      sm: 14,
-      md: 16,
-      lg: 20,
-      xl: 24,
+      sm: 16,
+      md: 20,
+      lg: 30,
+      xl: 40,
     },
     weight: {
       normal: "400",

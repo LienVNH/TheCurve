@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
 import { supabase } from "../../lib/supabase";
-import { globalStyles } from "../theme/globalStyles";
+import { globalStyles } from "../../theme/globalStyles";
 import { useRouter } from "expo-router";
 
 export default function LoginScreen() {
@@ -18,13 +18,23 @@ export default function LoginScreen() {
     if (error) {
       Alert.alert("Fout", error.message);
     } else {
-      router.replace("/(tabs)/home"); // Of je gewenste pagina
+      router.replace("/(tabs)/home");
     }
+  };
+
+  const handleGoogleLogin = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({ provider: "google" });
+    if (error) Alert.alert("Fout", error.message);
+  };
+
+  const handleFacebookLogin = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({ provider: "facebook" });
+    if (error) Alert.alert("Fout", error.message);
   };
 
   return (
     <View style={globalStyles.container}>
-      <Text style={globalStyles.title}>Inloggen</Text>
+      <Text style={globalStyles.titleL}>Inloggen</Text>
 
       <Text style={globalStyles.textDark}>E-mailadres</Text>
       <TextInput
@@ -43,8 +53,16 @@ export default function LoginScreen() {
         <Text style={globalStyles.buttonText}>Login</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => router.push("/auth/register")}>
-        <Text style={[globalStyles.text, { color: "#F4ED10", textAlign: "center", marginTop: 10 }]}>Nog geen account? Registreer!</Text>
+      <TouchableOpacity onPress={() => router.push("/register")}>
+        <Text style={[globalStyles.textDark, { color: "primary", textAlign: "center", marginTop: 10 }]}>Nog geen account? Registreer!</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={globalStyles.button} onPress={handleGoogleLogin}>
+        <Text style={globalStyles.buttonText}>Log in met Google</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity style={globalStyles.button} onPress={handleFacebookLogin}>
+        <Text style={globalStyles.buttonText}>Log in met Facebook</Text>
       </TouchableOpacity>
     </View>
   );

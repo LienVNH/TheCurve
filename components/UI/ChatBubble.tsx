@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { theme } from "../../theme/theme"; // pad aanpassen indien nodig
+import { theme } from "../../theme/theme"; 
+
 
 type Props = {
   text: string;
@@ -9,7 +10,7 @@ type Props = {
 
 export default function ChatBubble({ text, fromUser }: Props) {
   const bubbleStyle = {
-    backgroundColor: fromUser ? theme.colors.primary : theme.colors.shades.primary[100],
+    backgroundColor: fromUser ? theme.colors.primary : theme.colors.offWhite,
     alignSelf: fromUser ? ("flex-end" as "flex-end" | "flex-start") : ("flex-start" as "flex-end" | "flex-start"),
   };
 
