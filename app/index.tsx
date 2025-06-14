@@ -6,7 +6,7 @@ import { globalStyles } from "../theme/globalStyles";
 export default function SplashScreen() {
   useEffect(() => {
     const timer = setTimeout(() => {
-      router.replace("/login");
+      router.replace("../login");
     }, 1600); 
     return () => clearTimeout(timer);
   }, []);

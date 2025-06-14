@@ -5,7 +5,7 @@ import { theme } from "./theme";
 export const globalStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.white,
+    backgroundColor: theme.colors.backgroundColor,
     padding: theme.spacing.lg,
   },
 

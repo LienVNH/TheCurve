@@ -6,6 +6,8 @@ import { useAuth } from "../../hooks/useAuth";
 import { supabase } from "../../lib/supabase";
 import { useRouter } from "expo-router";
 
+
+
 export default function ProfileScreen() {
   const { user, loading: userLoading } = useAuth();
   const router = useRouter();

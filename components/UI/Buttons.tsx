@@ -1,34 +1,36 @@
 import React from "react";
-import { TouchableOpacity, Text } from "react-native";
+import { TouchableOpacity, Text, StyleSheet } from "react-native";
 import { globalStyles } from "../../theme/globalStyles";
+import { theme } from "../../theme/theme";
 
 type ButtonProps = {
   title: string;
   onPress: () => void;
-  variant?: "primary" | "success" | "warning";
   disabled?: boolean;
 };
 
-export function Button({ title, onPress, variant = "primary", disabled }: ButtonProps) {
-  let buttonStyle, textStyle;
-  switch (variant) {
-    case "success":
-      buttonStyle = globalStyles.buttonSuccess;
-      textStyle = globalStyles.buttonSuccessText;
-      break;
-    case "warning":
-      buttonStyle = globalStyles.buttonWarning;
-      textStyle = globalStyles.buttonWarningText;
-      break;
-    case "primary":
-    default:
-      buttonStyle = globalStyles.buttonPrimary;
-      textStyle = globalStyles.buttonPrimaryText;
-  }
-
+export function Buttons({ title, onPress, disabled }: ButtonProps) {
   return (
-    <TouchableOpacity style={buttonStyle} onPress={onPress} disabled={disabled}>
-      <Text style={textStyle}>{title}</Text>
+    <TouchableOpacity onPress={onPress} disabled={disabled} style={[styles.button, disabled && styles.disabled]}>
+      <Text style={styles.text}>{title}</Text>
     </TouchableOpacity>
   );
 }
+
+const styles = StyleSheet.create({
+  button: {
+    backgroundColor: theme.colors.primary,
+    paddingVertical: theme.spacing.sm,
+    paddingHorizontal: theme.spacing.md,
+    borderRadius: theme.borderRadius.md,
+    alignItems: "center",
+  },
+  text: {
+    color: theme.colors.buttonText,
+    fontSize: theme.font.size.md,
+    fontWeight: "bold",
+  },
+  disabled: {
+    backgroundColor: theme.colors.disabled,
+  },
+});

@@ -1,69 +1,110 @@
-import { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import { Alert, StyleSheet, View, Animated, Image, AppState, TextInput, Text, TouchableOpacity } from "react-native";
 import { supabase } from "../../lib/supabase";
 import { globalStyles } from "../../theme/globalStyles";
-import { useRouter } from "expo-router";
+import { useRouter } from "expo-router"; // ✅ Import router
 
-export default function LoginScreen() {
+// Supabase: auto-refresh tokens
+AppState.addEventListener("change", state => {
+  if (state === "active") {
+    supabase.auth.startAutoRefresh();
+  } else {
+    supabase.auth.stopAutoRefresh();
+  }
+});
+
+export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const logoOpacity = useRef(new Animated.Value(0)).current;
+  const router = useRouter(); // ✅ Init router
 
-  const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert("Vul je e-mail en wachtwoord in.");
-      return;
-    }
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+  useEffect(() => {
+    Animated.timing(logoOpacity, {
+      toValue: 1,
+      duration: 1000,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  async function signInWithEmail() {
+    setLoading(true);
+
+    const { error, data } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
     if (error) {
-      Alert.alert("Fout", error.message);
+      console.warn("Supabase login error ➜", error);
+      Alert.alert(error.message);
     } else {
-      router.replace("/(tabs)/home");
+      console.log("Login succesvol:", data?.user);
+      router.push("/account"); 
     }
-  };
 
-  const handleGoogleLogin = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({ provider: "google" });
-    if (error) Alert.alert("Fout", error.message);
-  };
+    setLoading(false);
+  }
 
-  const handleFacebookLogin = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({ provider: "facebook" });
-    if (error) Alert.alert("Fout", error.message);
-  };
+  async function signUpWithEmail() {
+    setLoading(true);
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+    if (error) Alert.alert(error.message);
+    if (!session) Alert.alert("Please check your inbox for email verification!");
+    setLoading(false);
+  }
 
   return (
-    <View style={globalStyles.container}>
-      <Text style={globalStyles.titleL}>Inloggen</Text>
+    <View style={[globalStyles.container, { flex: 1, justifyContent: "center" }]}>
+      {/* Logo */}
+      <Animated.View style={{ alignItems: "center", opacity: logoOpacity }}>
+        <Image source={require("../../assets/logo.png")} style={styles.logo} />
+      </Animated.View>
 
+      {/* E-mail */}
       <Text style={globalStyles.textDark}>E-mailadres</Text>
       <TextInput
         style={globalStyles.input}
         value={email}
         onChangeText={setEmail}
-        placeholder="E-mailadres"
+        placeholder="email@address.com"
         keyboardType="email-address"
         autoCapitalize="none"
       />
 
+      {/* Wachtwoord */}
       <Text style={globalStyles.textDark}>Wachtwoord</Text>
-      <TextInput style={globalStyles.input} value={password} onChangeText={setPassword} placeholder="Wachtwoord" secureTextEntry />
+      <TextInput
+        style={globalStyles.input}
+        value={password}
+        onChangeText={setPassword}
+        placeholder="Wachtwoord"
+        secureTextEntry
+        autoCapitalize="none"
+      />
 
-      <TouchableOpacity style={globalStyles.button} onPress={handleLogin}>
-        <Text style={globalStyles.buttonText}>Login</Text>
+      {/* Actieknoppen */}
+      <TouchableOpacity style={globalStyles.button} onPress={signInWithEmail} disabled={loading}>
+        <Text style={globalStyles.buttonText}>Inloggen</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => router.push("/register")}>
-        <Text style={[globalStyles.textDark, { color: "primary", textAlign: "center", marginTop: 10 }]}>Nog geen account? Registreer!</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={globalStyles.button} onPress={handleGoogleLogin}>
-        <Text style={globalStyles.buttonText}>Log in met Google</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={globalStyles.button} onPress={handleFacebookLogin}>
-        <Text style={globalStyles.buttonText}>Log in met Facebook</Text>
+      <TouchableOpacity style={globalStyles.button} onPress={signUpWithEmail} disabled={loading}>
+        <Text style={globalStyles.buttonText}>Registreren</Text>
       </TouchableOpacity>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  logo: {
+    width: 300,
+    height: 300,
+  },
+});

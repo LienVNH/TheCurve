@@ -4,10 +4,10 @@ import { Stack } from "expo-router";
 
 export default function RootLayout() {
   return (
-    <SafeAreaProvider>
-      <AuthProvider>
+     <SafeAreaProvider>
+       <AuthProvider> 
         <Stack screenOptions={{ headerShown: false }} />
-      </AuthProvider>
-    </SafeAreaProvider>
+        </AuthProvider> 
+     </SafeAreaProvider> 
   );
 }

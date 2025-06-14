@@ -18,19 +18,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 1. Haal huidige gebruiker op bij app-start
-    supabase.auth.getUser().then((response: { data: { user: any } }) => {
-      if (response.data.user) {
+    // 1. Huidige gebruiker ophalen
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
         setUser({
-          id: response.data.user.id,
-          email: response.data.user.email ?? "",
+          id: user.id,
+          email: user.email ?? "",
         });
       }
       setLoading(false);
     });
 
-    // 2. Luister naar login/logout events
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+    // 2. Auth state changes volgen
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         setUser({
           id: session.user.id,
@@ -42,9 +42,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => {
-      listener.subscription.unsubscribe();
+      authListener?.subscription.unsubscribe(); // ✅ correcte unsubscribe
     };
   }, []);
 
   return <AuthContext.Provider value={{ user, loading }}>{children}</AuthContext.Provider>;
+
 }

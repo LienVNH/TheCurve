@@ -2,7 +2,7 @@ export const theme = {
   colors: {
     // Niveaus van donkergroen (van zacht naar diep)
     greenDarkest: "#15381B", // Voor buttons, headers, nav, of card background
-    greenDark: "#1E5128", // Hoofd-achtergrond
+    greenDark: "#124a37", // Hoofd-achtergrond
     green: "#3C7C40", // Lichte tinten voor borders, icons
     greenLight: "#E3F6D3", // Heel lichte groene achtergrond
 
@@ -15,15 +15,25 @@ export const theme = {
     offWhite: "#F7F7EF",
     black: "#262626",
     border: "#DDE2D4",
-    textDark: "#234503", // Voor op lichte bg
+    textDark: "#124a37", // Voor op lichte bg
     textLight: "#FFFDEA", // Voor op donkergroen bg
 
     // Accentkleuren
     primary: "#1E5128",
     succes: "#84E567",
-    warning: "#F4ED10"// Donkergroen
-    , // Subtiel geel, niet als full bg gebruiken
+    warning: "#F4ED10",
+    backgroundColor: "#FbFbe4",
+
     danger: "#FF4242",
+
+    // UI elementen
+    buttonText: "#FFFDEA", // Voor op donkergroen buttons
+    disabled: "#B0B0B0", // Voor disabled buttons
+    link: "#1E5128", // Voor links, onderstreept
+    linkHover: "#15381B", // Voor hover state van links
+    cardBackground: "#F7F7EF", // Voor card achtergrond
+    cardBorder: "#DDE2D4", // Voor card borders
+    cardShadow: "#15381B", // Voor card schaduw
   },
   font: {
     family: "System",
