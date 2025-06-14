@@ -37,10 +37,12 @@ export const globalStyles = StyleSheet.create({
   },
   subtitle: {
     color: theme.colors.textDark,
+    fontWeight: "medium",
     fontSize: theme.font.size.md,
     marginTop: theme.spacing.md,
   },
   textDark: {
+    fontWeight: "medium",
     color: theme.colors.textDark,
     fontSize: theme.font.size.md,
   },

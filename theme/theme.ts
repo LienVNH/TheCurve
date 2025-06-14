@@ -23,9 +23,19 @@ export const theme = {
     succes: "#84E567",
     warning: "#F4ED10",
     backgroundColor: "#FbFbe4",
-
     danger: "#FF4242",
 
+    tagBackgrounds: {
+      Sport: "#D0F0C0",
+      Vrienden: "#C0E8F0",
+      Ondersteuning: "#F0D0E8",
+      Tips: "#FFF3B0",
+    },
+    tagBorders: {
+      default: "#aaa",
+      active: "#333",
+    },
+    
     // UI elementen
     buttonText: "#FFFDEA", // Voor op donkergroen buttons
     disabled: "#B0B0B0", // Voor disabled buttons
@@ -45,6 +55,8 @@ export const theme = {
     },
     weight: {
       normal: "400",
+      medium: "500",
+      semiBold: "600",
       bold: "700",
     },
   },

@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { Alert, StyleSheet, View, Animated, Image, AppState, TextInput, Text, TouchableOpacity } from "react-native";
 import { supabase } from "../../lib/supabase";
 import { globalStyles } from "../../theme/globalStyles";
-import { useRouter } from "expo-router"; // ✅ Import router
+import { useRouter } from "expo-router";
+import { KeyboardAvoidingView, Platform } from "react-native";
 
 // Supabase: auto-refresh tokens
 AppState.addEventListener("change", state => {
@@ -18,7 +19,7 @@ export default function Auth() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const logoOpacity = useRef(new Animated.Value(0)).current;
-  const router = useRouter(); // ✅ Init router
+  const router = useRouter();
 
   useEffect(() => {
     Animated.timing(logoOpacity, {
@@ -31,7 +32,7 @@ export default function Auth() {
   async function signInWithEmail() {
     setLoading(true);
 
-    const { error, data } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -39,9 +40,34 @@ export default function Auth() {
     if (error) {
       console.warn("Supabase login error ➜", error);
       Alert.alert(error.message);
+      setLoading(false);
+      return;
+    }
+
+    const user = data?.user;
+
+    if (!user) {
+      Alert.alert("Er ging iets fout bij het ophalen van de gebruiker.");
+      setLoading(false);
+      return;
+    }
+
+    // Haal profiel op
+    const { data: profile, error: profileError } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+
+    if (profileError) {
+      console.warn("Fout bij ophalen profiel ➜", profileError);
+      Alert.alert("Kon profielgegevens niet ophalen.");
+      setLoading(false);
+      return;
+    }
+
+    const isIncomplete = !profile?.username || !profile?.birthdate || !profile?.since_diabetes || !profile?.interests || !profile?.accepted_terms;
+
+    if (isIncomplete) {
+      router.replace("/onboarding");
     } else {
-      console.log("Login succesvol:", data?.user);
-      router.push("/account"); 
+      router.replace("/home");
     }
 
     setLoading(false);
@@ -49,26 +75,31 @@ export default function Auth() {
 
   async function signUpWithEmail() {
     setLoading(true);
-    const {
-      data: { session },
-      error,
-    } = await supabase.auth.signUp({
+
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
     });
-    if (error) Alert.alert(error.message);
-    if (!session) Alert.alert("Please check your inbox for email verification!");
+
+    if (error) {
+      Alert.alert(error.message);
+    } else if (!data.session) {
+      Alert.alert("Check je mailbox voor e-mailverificatie!");
+    }
+
     setLoading(false);
   }
 
   return (
+    <KeyboardAvoidingView
+    behavior={Platform.OS === "ios" ? "padding" : undefined}
+      style={{ flex: 1 }}>
+      
     <View style={[globalStyles.container, { flex: 1, justifyContent: "center" }]}>
-      {/* Logo */}
       <Animated.View style={{ alignItems: "center", opacity: logoOpacity }}>
         <Image source={require("../../assets/logo.png")} style={styles.logo} />
       </Animated.View>
 
-      {/* E-mail */}
       <Text style={globalStyles.textDark}>E-mailadres</Text>
       <TextInput
         style={globalStyles.input}
@@ -79,7 +110,6 @@ export default function Auth() {
         autoCapitalize="none"
       />
 
-      {/* Wachtwoord */}
       <Text style={globalStyles.textDark}>Wachtwoord</Text>
       <TextInput
         style={globalStyles.input}
@@ -90,7 +120,6 @@ export default function Auth() {
         autoCapitalize="none"
       />
 
-      {/* Actieknoppen */}
       <TouchableOpacity style={globalStyles.button} onPress={signInWithEmail} disabled={loading}>
         <Text style={globalStyles.buttonText}>Inloggen</Text>
       </TouchableOpacity>
@@ -98,7 +127,8 @@ export default function Auth() {
       <TouchableOpacity style={globalStyles.button} onPress={signUpWithEmail} disabled={loading}>
         <Text style={globalStyles.buttonText}>Registreren</Text>
       </TouchableOpacity>
-    </View>
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
