@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useContext } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, FlatList, Alert, TextInput, Image, ScrollView, ActivityIndicator } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, FlatList, Alert, TextInput, Image, ScrollView, ActivityIndicator, Linking } from "react-native";
 import { supabase } from "../../lib/supabase";
 import { AuthContext } from "../../context/AuthContext";
 import { globalStyles } from "../../theme/globalStyles";
 import { theme } from "../../theme/theme";
-
+import { router } from "expo-router";
 
 export default function Friends() {
   const { user } = useContext(AuthContext);
@@ -128,6 +128,53 @@ export default function Friends() {
     }
   }
 
+  async function startChat(friendId: string) {
+    if (!user) return;
+
+    const sortedIds = [user.id, friendId].sort();
+    const user1 = sortedIds[0];
+    const user2 = sortedIds[1];
+
+    const { data: existingChat } = await supabase
+      .from("chats")
+      .select("id")
+      .or(`and(user1_id.eq.${user1},user2_id.eq.${user2}),and(user1_id.eq.${user2},user2_id.eq.${user1})`)
+      .maybeSingle();
+
+    let chatId;
+
+    if (existingChat) {
+      chatId = existingChat.id;
+    } else {
+      const { data, error } = await supabase.from("chats").insert({ user1_id: user1, user2_id: user2 }).select().single();
+
+      if (error || !data) {
+        Alert.alert("Fout bij starten gesprek", error?.message || "Onbekende fout");
+        return;
+      }
+
+      chatId = data.id;
+    }
+
+    router.push(`/${chatId}`);
+  }
+
+  function reportUser(friend: any) {
+    const subject = encodeURIComponent("Melding van wangedrag in Applicatie tijdens een privéchat");
+    const body = encodeURIComponent(
+      `
+Gebruiker ${user?.email} wil wangedrag melden van ${friend.username} (${friend.id}).
+
+Voeg hier je beschrijving toe:
+
+...
+    `.trim()
+    );
+
+    const mailto = `mailto:Kolibrievnh@ygmail.com?subject=${subject}&body=${body}`;
+    Linking.openURL(mailto);
+  }
+
   if (!user) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
@@ -197,9 +244,14 @@ export default function Friends() {
                 <Image source={{ uri: friend.avatar_url || `https://api.dicebear.com/9.x/notionists/png?seed=${friend.id}` }} style={styles.avatar} />
                 <Text style={styles.username}>{friend.username}</Text>
               </View>
-              <TouchableOpacity onPress={() => startChat(friend.id)}>
-                <Text style={styles.chatButton}>💬 Start gesprek</Text>
-              </TouchableOpacity>
+              <View>
+                <TouchableOpacity onPress={() => startChat(friend.id)}>
+                  <Text style={styles.chatButton}>💬 Start gesprek</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => reportUser(friend)}>
+                  <Text style={styles.reportButton}>🚨 Meld wangedrag</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           ))}
         </View>
@@ -269,5 +321,11 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     fontWeight: "bold",
     marginLeft: 8,
+  },
+  reportButton: {
+    color: theme.colors.danger,
+    marginLeft: 8,
+    marginTop: 4,
+    fontWeight: "bold",
   },
 });
