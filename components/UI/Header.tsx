@@ -63,7 +63,7 @@ export default function Header({ variant = "default", chatName = "" }: { variant
 const styles = StyleSheet.create({
   container: {
     backgroundColor: theme.colors.primary,
-    paddingTop: 40,
+    paddingTop: 50,
     paddingBottom: 10,
     paddingHorizontal: 20,
   },

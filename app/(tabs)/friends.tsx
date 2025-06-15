@@ -44,7 +44,7 @@ export default function Friends() {
 
   async function loadUsers() {
     if (!user) return;
-    const { data, error } = await supabase.from("public_profiles").select("id, username, avatar_url").neq("id", user.id);
+    const { data, error } = await supabase.from("profiles").select("id, username, avatar_url").neq("id", user.id);
 
     if (error) Alert.alert("Fout bij ophalen gebruikers", error.message);
     else setAllUsers(data || []);
@@ -54,7 +54,7 @@ export default function Friends() {
     if (!user) return;
     const { data } = await supabase
       .from("friends")
-      .select("*, requester:public_profiles!friends_requester_id_fkey(id, username, avatar_url)")
+      .select("*, requester:profiles!friends_requester_id_fkey(id, username, avatar_url)")
       .eq("receiver_id", user.id)
       .eq("status", "pending");
 
