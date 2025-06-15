@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Alert, Platform, KeyboardAvoidingView, ScrollView } from "react-native";
+import { View, Text, TouchableOpacity, Alert, Platform, KeyboardAvoidingView, ScrollView } from "react-native";
 import { supabase } from "../../lib/supabase";
 import { globalStyles } from "../../theme/globalStyles";
 import { useRouter } from "expo-router";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import { Ionicons } from "@expo/vector-icons";
+import PlatformDatePicker from "../../components/PlatformDatePicker";
+import { createdLabelInput } from "../../components/helpers/createdLabelInput";
 
 export default function RegisterScreen() {
   const [firstName, setFirstName] = useState("");
@@ -14,9 +15,7 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
   const [birthday, setBirthday] = useState<Date | null>(null);
-  const [showBirthdayPicker, setShowBirthdayPicker] = useState(false);
   const [diabetesSince, setDiabetesSince] = useState<Date | null>(null);
-  const [showDiabetesPicker, setShowDiabetesPicker] = useState(false);
   const [whatHope, setWhatHope] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
 
@@ -27,6 +26,7 @@ export default function RegisterScreen() {
       Alert.alert("Je moet akkoord gaan met de algemene voorwaarden.");
       return;
     }
+
     if (
       !firstName.trim() ||
       !lastName.trim() ||
@@ -40,10 +40,12 @@ export default function RegisterScreen() {
       Alert.alert("Vul alle verplichte velden in.");
       return;
     }
+
     if (password !== repeatPassword) {
       Alert.alert("Wachtwoorden komen niet overeen.");
       return;
     }
+
     if (password.length < 8) {
       Alert.alert("Wachtwoord moet minstens 8 tekens bevatten.");
       return;
@@ -87,8 +89,7 @@ export default function RegisterScreen() {
     ]);
   };
 
-  // 1. Content gedefinieerd
-  const content = (
+  const form = (
     <ScrollView contentContainerStyle={{ flexGrow: 1, paddingBottom: 30 }}>
       <View
         style={{
@@ -109,79 +110,63 @@ export default function RegisterScreen() {
       </View>
 
       <View style={[globalStyles.container, { paddingHorizontal: 20 }]}>
-        <Text style={globalStyles.titleL}>Registreren</Text>
+        {createdLabelInput({
+          label: "Voornaam *",
+          value: firstName,
+          onChangeText: setFirstName,
+          placeholder: "Voornaam",
+        })}
 
-        <Text style={globalStyles.textDark}>Voornaam *</Text>
-        <TextInput style={globalStyles.input} value={firstName} onChangeText={setFirstName} placeholder="Voornaam" />
+        {createdLabelInput({
+          label: "Achternaam *",
+          value: lastName,
+          onChangeText: setLastName,
+          placeholder: "Achternaam",
+        })}
 
-        <Text style={globalStyles.textDark}>Achternaam *</Text>
-        <TextInput style={globalStyles.input} value={lastName} onChangeText={setLastName} placeholder="Achternaam" />
+        {createdLabelInput({
+          label: "Gebruikersnaam *",
+          value: username,
+          onChangeText: setUsername,
+          placeholder: "Unieke gebruikersnaam",
+          autoCapitalize: "none",
+        })}
 
-        <Text style={globalStyles.textDark}>Gebruikersnaam *</Text>
-        <TextInput
-          style={globalStyles.input}
-          value={username}
-          onChangeText={setUsername}
-          placeholder="Kies een unieke gebruikersnaam"
-          autoCapitalize="none"
-        />
+        {createdLabelInput({
+          label: "E-mailadres *",
+          value: email,
+          onChangeText: setEmail,
+          placeholder: "E-mailadres",
+          keyboardType: "email-address",
+          autoCapitalize: "none",
+        })}
 
-        <Text style={globalStyles.textDark}>E-mailadres *</Text>
-        <TextInput
-          style={globalStyles.input}
-          value={email}
-          onChangeText={setEmail}
-          placeholder="E-mailadres"
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
+        {createdLabelInput({
+          label: "Wachtwoord *",
+          value: password,
+          onChangeText: setPassword,
+          placeholder: "Wachtwoord",
+          secureTextEntry: true,
+        })}
 
-        <Text style={globalStyles.textDark}>Wachtwoord *</Text>
-        <TextInput style={globalStyles.input} value={password} onChangeText={setPassword} placeholder="Wachtwoord" secureTextEntry />
+        {createdLabelInput({
+          label: "Herhaal wachtwoord *",
+          value: repeatPassword,
+          onChangeText: setRepeatPassword,
+          placeholder: "Herhaal wachtwoord",
+          secureTextEntry: true,
+        })}
 
-        <Text style={globalStyles.textDark}>Herhaal wachtwoord *</Text>
-        <TextInput
-          style={globalStyles.input}
-          value={repeatPassword}
-          onChangeText={setRepeatPassword}
-          placeholder="Herhaal wachtwoord"
-          secureTextEntry
-        />
+        {/* ✅ Hier gebruik je PlatformDatePicker die automatisch DateSelect toont op web */}
+        <PlatformDatePicker label="Verjaardag *" value={birthday} onChange={setBirthday} />
+        <PlatformDatePicker label="Sinds wanneer heb je diabetes type 1? *" value={diabetesSince} onChange={setDiabetesSince} />
 
-        <Text style={globalStyles.textDark}>Verjaardag *</Text>
-        <TouchableOpacity style={globalStyles.input} onPress={() => setShowBirthdayPicker(true)}>
-          <Text>{birthday ? birthday.toLocaleDateString() : "Kies je verjaardag"}</Text>
-        </TouchableOpacity>
-        {showBirthdayPicker && (
-          <DateTimePicker
-            mode="date"
-            value={birthday || new Date(2000, 0, 1)}
-            onChange={(_, selectedDate) => {
-              setShowBirthdayPicker(false);
-              if (selectedDate) setBirthday(selectedDate);
-            }}
-            maximumDate={new Date()}
-          />
-        )}
-
-        <Text style={globalStyles.textDark}>Sinds wanneer heb je diabetes type 1? *</Text>
-        <TouchableOpacity style={globalStyles.input} onPress={() => setShowDiabetesPicker(true)}>
-          <Text>{diabetesSince ? diabetesSince.toLocaleDateString() : "Kies een datum"}</Text>
-        </TouchableOpacity>
-        {showDiabetesPicker && (
-          <DateTimePicker
-            mode="date"
-            value={diabetesSince || new Date()}
-            onChange={(_, selectedDate) => {
-              setShowDiabetesPicker(false);
-              if (selectedDate) setDiabetesSince(selectedDate);
-            }}
-            maximumDate={new Date()}
-          />
-        )}
-
-        <Text style={globalStyles.textDark}>Wat hoop je uit deze app te halen?</Text>
-        <TextInput style={globalStyles.input} value={whatHope} onChangeText={setWhatHope} placeholder="Tips, vrienden, inspiratie..." />
+        {createdLabelInput({
+          label: "Wat hoop je uit deze app te halen?",
+          value: whatHope,
+          onChangeText: setWhatHope,
+          placeholder: "Tips, vrienden, inspiratie...",
+        })}
 
         <TouchableOpacity style={globalStyles.checkboxRow} onPress={() => setTermsAccepted(!termsAccepted)} activeOpacity={0.7}>
           <View style={[globalStyles.checkboxBox, termsAccepted && { backgroundColor: "#1E5128" }]}>
@@ -202,16 +187,15 @@ export default function RegisterScreen() {
     </ScrollView>
   );
 
-  // 2. Return per platform met scrollbaarheid
   return Platform.OS === "web" ? (
-    <View style={{ flex: 1 }}>{content}</View>
+    <View style={{ flex: 1 }}>{form}</View>
   ) : (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0}
     >
-      {content}
+      {form}
     </KeyboardAvoidingView>
   );
 }

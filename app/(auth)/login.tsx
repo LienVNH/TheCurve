@@ -4,6 +4,7 @@ import { supabase } from "../../lib/supabase";
 import { globalStyles } from "../../theme/globalStyles";
 import { useRouter } from "expo-router";
 
+
 // Supabase: auto-refresh tokens
 AppState.addEventListener("change", state => {
   if (state === "active") {
@@ -101,7 +102,7 @@ export default function Auth() {
         style={globalStyles.input}
         value={email}
         onChangeText={setEmail}
-        placeholder="email@address.com"
+        placeholder="email@adres.be"
         keyboardType="email-address"
         autoCapitalize="none"
       />
