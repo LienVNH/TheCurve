@@ -29,7 +29,8 @@
       "package": "com.lienvnh.thecurve"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "output": "export"
     },
     "extra": {
       "supabaseUrl": "process.env.EXPO_PUBLIC_SUPABASE_URL",
