@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Alert, StyleSheet, View, Animated, Image, AppState, TextInput, Text, TouchableOpacity } from "react-native";
+import { Alert, StyleSheet, View, Animated, Image, AppState, TextInput, Text, TouchableOpacity, KeyboardAvoidingView, Platform } from "react-native";
 import { supabase } from "../../lib/supabase";
 import { globalStyles } from "../../theme/globalStyles";
 import { useRouter } from "expo-router";
-import { KeyboardAvoidingView, Platform } from "react-native";
 
 // Supabase: auto-refresh tokens
 AppState.addEventListener("change", state => {
@@ -52,7 +51,7 @@ export default function Auth() {
       return;
     }
 
-    // Haal profiel op
+    // Haalt profiel op
     const { data: profile, error: profileError } = await supabase.from("profiles").select("*").eq("id", user.id).single();
 
     if (profileError) {
@@ -90,11 +89,8 @@ export default function Auth() {
     setLoading(false);
   }
 
-  return (
-    <KeyboardAvoidingView
-    behavior={Platform.OS === "ios" ? "padding" : undefined}
-      style={{ flex: 1 }}>
-      
+
+  const content = (
     <View style={[globalStyles.container, { flex: 1, justifyContent: "center" }]}>
       <Animated.View style={{ alignItems: "center", opacity: logoOpacity }}>
         <Image source={require("../../assets/logo.png")} style={styles.logo} />
@@ -127,7 +123,15 @@ export default function Auth() {
       <TouchableOpacity style={globalStyles.button} onPress={signUpWithEmail} disabled={loading}>
         <Text style={globalStyles.buttonText}>Registreren</Text>
       </TouchableOpacity>
-      </View>
+    </View>
+  );
+
+  //  Return afhankelijk van platform
+  return Platform.OS === "web" ? (
+    content
+  ) : (
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
+      {content}
     </KeyboardAvoidingView>
   );
 }
