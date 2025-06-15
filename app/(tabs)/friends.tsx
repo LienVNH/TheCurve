@@ -73,8 +73,11 @@ export default function Friends() {
   async function loadFriends() {
     if (!user) return;
     const { data } = await supabase.rpc("get_friends", { current_user_id: user.id });
-    setFriends(data || []);
-  }
+      setFriends(data || []);
+      
+    }
+    
+    
 
   async function sendFriendRequest(toId: string) {
     if (!user || sentRequests.includes(toId)) return;
@@ -84,14 +87,15 @@ export default function Friends() {
       receiver_id: toId,
       status: "pending",
     });
-    if (error && error.code !== "23505") Alert.alert("Fout bij verzenden uitnodiging", error.message);
+
+    if (error) Alert.alert("Fout bij verzenden uitnodiging", error.message);
     else {
       loadUsers();
       loadSentRequests();
     }
   }
 
-  async function respondToRequest(requestId: number, accept: boolean) {
+  async function respondToRequest(requestId: string, accept: boolean) {
     const { error } = await supabase
       .from("friends")
       .update({ status: accept ? "accepted" : "declined" })
