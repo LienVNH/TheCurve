@@ -156,7 +156,7 @@ export default function Friends() {
       chatId = data.id;
     }
 
-    router.push(`/${chatId}`);
+    router.push(`chat/${chatId}`);
   }
 
   function reportUser(friend: any) {
