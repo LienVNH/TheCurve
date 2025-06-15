@@ -197,6 +197,9 @@ export default function Friends() {
                 <Image source={{ uri: friend.avatar_url || `https://api.dicebear.com/9.x/notionists/png?seed=${friend.id}` }} style={styles.avatar} />
                 <Text style={styles.username}>{friend.username}</Text>
               </View>
+              <TouchableOpacity onPress={() => startChat(friend.id)}>
+                <Text style={styles.chatButton}>💬 Start gesprek</Text>
+              </TouchableOpacity>
             </View>
           ))}
         </View>
@@ -257,5 +260,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 8,
     marginBottom: 12,
+  },
+  chatButton: {
+    backgroundColor: theme.colors.primary,
+    color: theme.colors.textLight,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    fontWeight: "bold",
+    marginLeft: 8,
   },
 });
