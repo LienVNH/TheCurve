@@ -62,8 +62,29 @@ export default function Onboarding() {
     setInterests(prev => (prev.includes(option) ? prev.filter(i => i !== option) : [...prev, option]));
   }
 
+  const DateInput = ({ date, onChange }: { date: Date; onChange: (d: Date) => void }) =>
+    Platform.OS === "web" ? (
+      <TextInput
+        style={globalStyles.input}
+        value={date.toISOString().split("T")[0]}
+        onChangeText={text => onChange(new Date(text))}
+        placeholder="YYYY-MM-DD"
+      />
+    ) : (
+      <DateTimePicker
+        value={date}
+        mode="date"
+        display="default"
+        onChange={(event, selectedDate) => {
+          if (selectedDate) onChange(selectedDate);
+        }}
+      />
+    );
+
+  const Container = Platform.OS === "web" ? View : KeyboardAvoidingView;
+
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
+    <Container behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
       <Header variant="default" />
       <FlatList
         data={[]} // leeg, want we gebruiken alleen de header
@@ -75,24 +96,10 @@ export default function Onboarding() {
             <TextInput style={globalStyles.input} value={username} onChangeText={setUsername} placeholder="Gebruikersnaam" />
 
             <Text style={globalStyles.textDark}>Geboortedatum</Text>
-            <DateTimePicker
-              value={birthdate}
-              mode="date"
-              display="default"
-              onChange={(event, selectedDate) => {
-                if (selectedDate) setBirthdate(selectedDate);
-              }}
-            />
+            <DateInput date={birthdate} onChange={setBirthdate} />
 
             <Text style={globalStyles.textDark}>Sinds wanneer heb je diabetes?</Text>
-            <DateTimePicker
-              value={sinceDiabetes}
-              mode="date"
-              display="default"
-              onChange={(event, selectedDate) => {
-                if (selectedDate) setSinceDiabetes(selectedDate);
-              }}
-            />
+            <DateInput date={sinceDiabetes} onChange={setSinceDiabetes} />
 
             <Text style={globalStyles.textDark}>Waar heb je het meeste interesse in?</Text>
             <View style={styles.tagContainer}>
@@ -146,7 +153,14 @@ export default function Onboarding() {
               })}
             </View>
 
-            <TouchableOpacity onPress={() => setAcceptedTerms(!acceptedTerms)} style={{ flexDirection: "row", flexWrap: "wrap", marginBottom: 12 }}>
+            <TouchableOpacity
+              onPress={() => setAcceptedTerms(!acceptedTerms)}
+              style={{
+                flexDirection: "row",
+                flexWrap: "wrap",
+                marginBottom: 12,
+              }}
+            >
               <Text style={globalStyles.textDark}>{acceptedTerms ? "☑" : "☐"} Ik ga akkoord met de </Text>
               <Text
                 onPress={() => router.push("/terms")}
@@ -166,7 +180,7 @@ export default function Onboarding() {
           </View>
         }
       />
-    </KeyboardAvoidingView>
+    </Container>
   );
 }
 
