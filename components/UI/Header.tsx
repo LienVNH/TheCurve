@@ -50,7 +50,7 @@ export default function Header({ variant = "default", chatName = "" }: { variant
         </View>
       ) : (
         <View style={styles.row}>
-          <Image source={require("../../assets/logo.png")} style={styles.logo} resizeMode="contain" />
+          <Image source={require("../../assets/the.png")} style={styles.logo} resizeMode="contain" />
           <Pressable onPress={handleLogout} style={({ pressed }) => [styles.logoutButton, pressed && styles.logoutPressed]}>
             <Text style={styles.logoutIcon}>👤</Text>
           </Pressable>
@@ -63,7 +63,7 @@ export default function Header({ variant = "default", chatName = "" }: { variant
 const styles = StyleSheet.create({
   container: {
     backgroundColor: theme.colors.primary,
-    paddingTop: 50,
+    paddingTop: 40,
     paddingBottom: 10,
     paddingHorizontal: 20,
   },
@@ -73,8 +73,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   logo: {
-    width: 40,
-    height: 40,
+    width: 120,
+    height: 60,
   },
   title: {
     color: "white", // wordt gebruikt als greet-tekstkleur
@@ -92,14 +92,14 @@ const styles = StyleSheet.create({
     borderColor: "white", // kleur komt overeen met begroetingskleur
   },
   logoutButton: {
-    backgroundColor: "#E3F6D3",
-      borderWidth: 1,
-      borderColor: "white",  // zachte groene achtergrond
+    backgroundColor: "primary",
+    borderWidth: 1,
+    borderColor: "#c09e5f", // zachte groene achtergrond
     borderRadius: 20,
     padding: 6,
   },
   logoutPressed: {
-    backgroundColor: "#A0E8AC", // iets donkerder groen bij indrukken
+    backgroundColor: "#c09e5f", // iets donkerder groen bij indrukken
   },
   logoutIcon: {
     color: "#1B4332", // donkergroen icoon

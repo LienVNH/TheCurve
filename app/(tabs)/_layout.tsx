@@ -10,7 +10,7 @@ export default function TabsLayout() {
 
   
   let headerVariant: "default" | "personal" | "chat" = "default";
-  if (pathname.includes("/tabs/profile")) headerVariant = "personal";
+  if (pathname.includes("/tabs/friends")) headerVariant = "personal";
   if (pathname.includes("/tabs/chats/")) headerVariant = "chat";
 
 

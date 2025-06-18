@@ -21,8 +21,8 @@ export default function BottomTabs() {
         const isActive = pathname.startsWith(tab.route);
         return (
           <TouchableOpacity key={tab.route} onPress={() => router.push(tab.route)} style={styles.tab}>
-            <Ionicons name={tab.icon as any} size={22} color={isActive ? "greenLight" : "#ccc"} />
-            <Text style={[styles.label, { color: isActive ? "#fff" : "#ccc" }]}>{tab.label}</Text>
+            <Ionicons name={tab.icon as any} size={22} color={isActive ? "greenLight" : "#c09e5f"} />
+            <Text style={[styles.label, { color: isActive ? "#fff" : "#c09e5f" }]}>{tab.label}</Text>
           </TouchableOpacity>
         );
       })}

@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Alert, StyleSheet, View, Animated, Image, AppState, TextInput, Text, TouchableOpacity, KeyboardAvoidingView, Platform } from "react-native";
+import { Alert, StyleSheet, View, Animated, Image, AppState, TextInput, Text, TouchableOpacity } from "react-native";
 import { supabase } from "../../lib/supabase";
 import { globalStyles } from "../../theme/globalStyles";
 import { useRouter } from "expo-router";
-
+import { KeyboardAvoidingView, Platform } from "react-native";
 
 // Supabase: auto-refresh tokens
 AppState.addEventListener("change", state => {
@@ -52,7 +52,6 @@ export default function Auth() {
       return;
     }
 
-    // Haalt profiel op
     const { data: profile, error: profileError } = await supabase.from("profiles").select("*").eq("id", user.id).single();
 
     if (profileError) {
@@ -83,56 +82,48 @@ export default function Auth() {
 
     if (error) {
       Alert.alert(error.message);
-    } else if (!data.session) {
-      Alert.alert("Check je mailbox voor e-mailverificatie!");
+    } else {
+      Alert.alert("Je bent succesvol geregistreerd! Je kan nu inloggen.");
     }
 
     setLoading(false);
   }
 
+  return (
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
+      <View style={[globalStyles.container, { flex: 1, justifyContent: "center" }]}>
+        <Animated.View style={{ alignItems: "center", opacity: logoOpacity }}>
+          <Image source={require("../../assets/logo.png")} style={styles.logo} />
+        </Animated.View>
 
-  const content = (
-    <View style={[globalStyles.container, { flex: 1, justifyContent: "center" }]}>
-      <Animated.View style={{ alignItems: "center", opacity: logoOpacity }}>
-        <Image source={require("../../assets/logo.png")} style={styles.logo} />
-      </Animated.View>
+        <Text style={globalStyles.textDark}>E-mailadres</Text>
+        <TextInput
+          style={globalStyles.input}
+          value={email}
+          onChangeText={setEmail}
+          placeholder="email@address.com"
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
 
-      <Text style={globalStyles.textDark}>E-mailadres</Text>
-      <TextInput
-        style={globalStyles.input}
-        value={email}
-        onChangeText={setEmail}
-        placeholder="email@adres.be"
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
+        <Text style={globalStyles.textDark}>Wachtwoord</Text>
+        <TextInput
+          style={globalStyles.input}
+          value={password}
+          onChangeText={setPassword}
+          placeholder="Wachtwoord"
+          secureTextEntry
+          autoCapitalize="none"
+        />
 
-      <Text style={globalStyles.textDark}>Wachtwoord</Text>
-      <TextInput
-        style={globalStyles.input}
-        value={password}
-        onChangeText={setPassword}
-        placeholder="Wachtwoord"
-        secureTextEntry
-        autoCapitalize="none"
-      />
+        <TouchableOpacity style={globalStyles.button} onPress={signInWithEmail} disabled={loading}>
+          <Text style={globalStyles.buttonText}>Inloggen</Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity style={globalStyles.button} onPress={signInWithEmail} disabled={loading}>
-        <Text style={globalStyles.buttonText}>Inloggen</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={globalStyles.button} onPress={signUpWithEmail} disabled={loading}>
-        <Text style={globalStyles.buttonText}>Registreren</Text>
-      </TouchableOpacity>
-    </View>
-  );
-
-  //  Return afhankelijk van platform
-  return Platform.OS === "web" ? (
-    content
-  ) : (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
-      {content}
+        <TouchableOpacity style={globalStyles.button} onPress={signUpWithEmail} disabled={loading}>
+          <Text style={globalStyles.buttonText}>Registreren</Text>
+        </TouchableOpacity>
+      </View>
     </KeyboardAvoidingView>
   );
 }

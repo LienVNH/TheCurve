@@ -54,7 +54,7 @@ export default function RegisterScreen() {
     const birthdayStr = birthday.toISOString().slice(0, 10);
     const diabetesStr = diabetesSince.toISOString().slice(0, 10);
 
-    const { data, error } = await supabase.auth.signUp({
+    const { error, data } = await supabase.auth.signUp({
       email,
       password,
     });

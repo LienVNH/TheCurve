@@ -42,13 +42,15 @@ export default function Home() {
       <ScrollView contentContainerStyle={[globalStyles.container, { paddingBottom: 100 }]}>
         <View style={styles.welcomeBox}>
           <Text style={styles.welcomeText}>
-            Je bent niet alleen. Leven met diabetes is soms een echte achtbaan – van hypers naar hypo's, van pizza tot pompen.
+            <Text style={styles.bold}>Je bent niet alleen.</Text>
             {"\n\n"}
-            Maar weet je? Jij zit niet alleen in dat karretje.
+            Leven met diabetes is soms een echte achtbaan – van hypers naar hypo's, van frustratie tot focus. Het is normaal dat je je soms
+            overweldigd voelt, alsof je in een karretje zit dat alle kanten op schiet.{"\n\n"}
+            Maar weet je?{"\n\n"}
+            <Text style={styles.bold}>Jij zit niet alleen in dat karretje.</Text>
             {"\n\n"}
-            Deze app is er om samen met jou de bochten te nemen, om verhalen te delen en om af en toe even stil te staan.
-            {"\n\n"}
-            💬 “Soms win je, soms leer je – en elke dag is er eentje die telt.”
+            Deze app is er om samen met jou de bochten te nemen, om verhalen te delen en om af en toe even stil te staan.{"\n\n"}
+            
           </Text>
         </View>
 
@@ -67,8 +69,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   welcomeBox: {
-    backgroundColor: "#f2f6fa",
+    backgroundColor: "#c09e5f",
     padding: 20,
+    fontWeight: "bold",
     borderRadius: 16,
     margin: 16,
     shadowColor: "#000",
@@ -81,6 +84,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
     color: "#333",
-    textAlign: "center",
+    textAlign: "center"
+  },
+  bold: {
+    fontWeight: "bold",
+  },
+  quote: {
+    fontStyle: "italic",
+    color: "#555",
+    fontSize: 12
   },
 });

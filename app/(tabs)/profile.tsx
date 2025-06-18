@@ -65,7 +65,7 @@ export default function ProfileScreen() {
         <Text style={globalStyles.textDark}>Sinds diabetes: {profile?.diabetes_since}</Text>
         <Text style={globalStyles.textDark}>Wat hoop je uit de app te halen?</Text>
         <Text style={globalStyles.textDark}>{profile?.what_hope}</Text>
-        <TouchableOpacity style={globalStyles.button} onPress={() => router.push("/set-avatar")}>
+        <TouchableOpacity style={globalStyles.button} onPress={() => router.push("/chats")}>
           <Text style={globalStyles.buttonText}>Avatar wijzigen</Text>
         </TouchableOpacity>
       </View>
