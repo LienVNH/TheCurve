@@ -4,19 +4,12 @@ import { supabase } from "../../lib/supabase";
 import { globalStyles } from "../../theme/globalStyles";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import PlatformDatePicker from "../../components/PlatformDatePicker";
 import { createdLabelInput } from "../../components/helpers/createdLabelInput";
 
 export default function RegisterScreen() {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
-  const [birthday, setBirthday] = useState<Date | null>(null);
-  const [diabetesSince, setDiabetesSince] = useState<Date | null>(null);
-  const [whatHope, setWhatHope] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
 
   const router = useRouter();
@@ -27,17 +20,8 @@ export default function RegisterScreen() {
       return;
     }
 
-    if (
-      !firstName.trim() ||
-      !lastName.trim() ||
-      !username.trim() ||
-      !email.trim() ||
-      !password.trim() ||
-      !repeatPassword.trim() ||
-      !birthday ||
-      !diabetesSince
-    ) {
-      Alert.alert("Vul alle verplichte velden in.");
+    if (!email.trim() || !password.trim() || !repeatPassword.trim()) {
+      Alert.alert("Vul alle velden in.");
       return;
     }
 
@@ -51,9 +35,6 @@ export default function RegisterScreen() {
       return;
     }
 
-    const birthdayStr = birthday.toISOString().slice(0, 10);
-    const diabetesStr = diabetesSince.toISOString().slice(0, 10);
-
     const { error, data } = await supabase.auth.signUp({
       email,
       password,
@@ -65,28 +46,9 @@ export default function RegisterScreen() {
     }
 
     if (data?.user) {
-      const { error: profileError } = await supabase.from("profiles").insert([
-        {
-          user_id: data.user.id,
-          first_name: firstName,
-          last_name: lastName,
-          username,
-          birthday: birthdayStr,
-          diabetes_since: diabetesStr,
-          what_hope: whatHope,
-          terms_accepted: true,
-        },
-      ]);
-
-      if (profileError) {
-        Alert.alert("Fout bij profiel aanmaken", profileError.message);
-        return;
-      }
+      Alert.alert("Registratie gelukt!", "Check je inbox voor bevestiging. Daarna kun je inloggen en je profiel vervolledigen.");
+      router.replace("/login");
     }
-
-    Alert.alert("Registratie gelukt!", "Check je inbox voor bevestiging. Na bevestigen kan je inloggen.", [
-      { text: "Naar login", onPress: () => router.replace("/login") },
-    ]);
   };
 
   const form = (
@@ -111,28 +73,6 @@ export default function RegisterScreen() {
 
       <View style={[globalStyles.container, { paddingHorizontal: 20 }]}>
         {createdLabelInput({
-          label: "Voornaam *",
-          value: firstName,
-          onChangeText: setFirstName,
-          placeholder: "Voornaam",
-        })}
-
-        {createdLabelInput({
-          label: "Achternaam *",
-          value: lastName,
-          onChangeText: setLastName,
-          placeholder: "Achternaam",
-        })}
-
-        {createdLabelInput({
-          label: "Gebruikersnaam *",
-          value: username,
-          onChangeText: setUsername,
-          placeholder: "Unieke gebruikersnaam",
-          autoCapitalize: "none",
-        })}
-
-        {createdLabelInput({
           label: "E-mailadres *",
           value: email,
           onChangeText: setEmail,
@@ -155,17 +95,6 @@ export default function RegisterScreen() {
           onChangeText: setRepeatPassword,
           placeholder: "Herhaal wachtwoord",
           secureTextEntry: true,
-        })}
-
-        {/* ✅ Hier gebruik je PlatformDatePicker die automatisch DateSelect toont op web */}
-        <PlatformDatePicker label="Verjaardag *" value={birthday} onChange={setBirthday} />
-        <PlatformDatePicker label="Sinds wanneer heb je diabetes type 1? *" value={diabetesSince} onChange={setDiabetesSince} />
-
-        {createdLabelInput({
-          label: "Wat hoop je uit deze app te halen?",
-          value: whatHope,
-          onChangeText: setWhatHope,
-          placeholder: "Tips, vrienden, inspiratie...",
         })}
 
         <TouchableOpacity style={globalStyles.checkboxRow} onPress={() => setTermsAccepted(!termsAccepted)} activeOpacity={0.7}>

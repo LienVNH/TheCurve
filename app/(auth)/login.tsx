@@ -61,7 +61,7 @@ export default function Auth() {
       return;
     }
 
-    const isIncomplete = !profile?.username || !profile?.birthdate || !profile?.since_diabetes || !profile?.interests || !profile?.accepted_terms;
+    const isIncomplete = !profile?.username || !profile?.birthdate || !profile?.since_diabetes || !profile?.interests.length || !profile?.accepted_terms;
 
     if (isIncomplete) {
       router.replace("/onboarding");

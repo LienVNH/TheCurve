@@ -1,36 +1,57 @@
-import React, { useState, useEffect, useContext, useRef } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, FlatList, Alert, Linking, KeyboardAvoidingView, Platform } from "react-native";
+import React, { useContext, useEffect, useRef, useState } from "react";
+import { View, Text, TextInput, TouchableOpacity, FlatList, StyleSheet, KeyboardAvoidingView, Platform, Image } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { supabase } from "../../../lib/supabase";
 import { AuthContext } from "../../../context/AuthContext";
 import { theme } from "../../../theme/theme";
-import { Ionicons } from "@expo/vector-icons";
-import { Filter as FilterLib } from "bad-words";
+
+type Message = {
+  id: string;
+  chat_id: string;
+  sender_id: string;
+  content: string;
+  inserted_at?: string;
+};
+
+type User = {
+  id: string;
+  username: string;
+  avatar_url: string;
+};
 
 export default function ChatDetail() {
-  const { chatId: rawId } = useLocalSearchParams();
-  const chatId = Array.isArray(rawId) ? rawId[0] : rawId;
-
+  const { id } = useLocalSearchParams();
+  const chatId = typeof id === "string" ? id : id?.[0];
   const { user } = useContext(AuthContext);
-  const [messages, setMessages] = useState<any[]>([]);
-  const [input, setInput] = useState("");
-  const [chatPartner, setChatPartner] = useState<any>(null);
-  const flatListRef = useRef<FlatList>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [chatPartner, setChatPartner] = useState<User | null>(null);
+  const [newMessage, setNewMessage] = useState("");
+  const flatListRef = useRef<FlatList<Message>>(null);
 
   useEffect(() => {
     if (!chatId || !user) return;
 
-    loadMessages();
-    fetchPartner();
+    fetchChatPartner();
+    fetchMessages();
 
     const channel = supabase
-      .channel("messages")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, payload => {
-        if (payload.new.chat_id === chatId) {
-          setMessages(prev => [...prev, payload.new]);
-          setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+      .channel(`chat_messages_${chatId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `chat_id=eq.${chatId}`,
+        },
+        payload => {
+          const newMsg = payload.new as Message;
+          setMessages(prev => {
+            const alreadyExists = prev.some(m => m.id === newMsg.id);
+            return alreadyExists ? prev : [...prev, newMsg];
+          });
         }
-      })
+      )
       .subscribe();
 
     return () => {
@@ -38,102 +59,103 @@ export default function ChatDetail() {
     };
   }, [chatId, user]);
 
-  async function loadMessages() {
-    const { data, error } = await supabase.from("messages").select("*").eq("chat_id", chatId).order("created_at", { ascending: true });
+  async function fetchMessages() {
+    const { data, error } = await supabase.from("messages").select("*").eq("chat_id", chatId).order("inserted_at", { ascending: true });
 
-    if (error) Alert.alert("Fout bij laden", error.message);
-    else setMessages(data || []);
-  }
-
-  async function fetchPartner() {
-    const { data, error } = await supabase
-      .from("chats")
-      .select("*, user1:profiles!user1_id(id, username), user2:profiles!user2_id(id, username)")
-      .eq("id", chatId)
-      .single();
-
-    if (!error && data && user) {
-      if (data.user1 && data.user2) {
-        const partner = data.user1.id === user.id ? data.user2 : data.user1;
-        setChatPartner(partner);
-      }
-    }
-  }
-
-  async function sendMessage() {
-    if (!user) return;
-
-    const filter = new FilterLib();
-    filter.addWords("kut", "klootzak", "lul", "tering", "hoer", "slet", "eikel", "wijf", "mongool", "debiel");
-
-    const trimmed = input.trim();
-    if (!trimmed) return;
-
-    if (filter.isProfane(trimmed)) {
-      Alert.alert("Oeps...", "Je bericht bevat ongepaste taal.");
+    if (error) {
+      console.error("Fout bij ophalen berichten:", error.message);
       return;
     }
 
+    setMessages(data || []);
+  }
+
+  async function fetchChatPartner() {
     const { data, error } = await supabase
-      .from("messages")
-      .insert({
-        chat_id: chatId,
-        sender_id: user.id,
-        content: trimmed,
-      })
-      .select("*")
+      .from("chats")
+      .select("id, user1_id, user2_id, user1:profiles!user1_id(id, username, avatar_url), user2:profiles!user2_id(id, username, avatar_url)")
+      .eq("id", chatId)
       .single();
 
-    if (error) Alert.alert("Fout bij verzenden", error.message);
-    else {
-      setMessages(prev => [...prev, data]);
-      setInput("");
-      setTimeout(() => flatListRef.current?.scrollToEnd({ animated: true }), 100);
+    if (error || !data) {
+      console.error("Fout bij ophalen chatpartner:", error?.message);
+      return;
+    }
+
+    const isUser1 = data.user1_id === user?.id;
+    const partner = isUser1 ? data.user2 : data.user1;
+    setChatPartner(Array.isArray(partner) ? partner[0] : partner);
+  }
+
+  async function sendMessage() {
+    if (!newMessage.trim() || !user || !chatId) return;
+
+    const { error } = await supabase.from("messages").insert({
+      chat_id: chatId,
+      sender_id: user.id,
+      content: newMessage.trim(),
+    });
+
+    // Update last message
+    await supabase
+      .from("chats")
+      .update({
+        last_message: newMessage.trim(),
+        last_updated: new Date().toISOString(),
+      })
+      .eq("id", chatId);
+
+    if (error) {
+      console.error("Fout bij versturen:", error.message);
+    } else {
+      setNewMessage("");
     }
   }
 
-  function reportChat() {
-    const subject = encodeURIComponent("Melding van wangedrag in privéchat");
-    const body = encodeURIComponent(
-      `
-Gebruiker ${user?.email} wil wangedrag melden in chat ${chatId} met ${chatPartner?.username}.
-
-Voeg hier je beschrijving toe:
-...`.trim()
+  if (!chatPartner) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text>Chat aan het laden...</Text>
+      </View>
     );
-    const mailto = `mailto:admin@yourdomain.com?subject=${subject}&body=${body}`;
-    Linking.openURL(mailto);
   }
-
-  const renderMessage = ({ item }: any) => (
-    <View style={[styles.bubble, user && item.sender_id === user.id ? styles.bubbleRight : styles.bubbleLeft]}>
-      <Text style={styles.bubbleText}>{item.content}</Text>
-    </View>
-  );
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerText}>{chatPartner?.username || "Chat"}</Text>
-        <TouchableOpacity onPress={reportChat}>
-          <Ionicons name="alert-circle" size={24} color={theme.colors.danger} />
-        </TouchableOpacity>
+        <Image
+          source={{ uri: chatPartner.avatar_url || `https://api.dicebear.com/9.x/notionists/png?seed=${chatPartner.id}` }}
+          style={styles.avatar}
+        />
+        <Text style={styles.headerTitle}>{chatPartner.username}</Text>
       </View>
 
+      {/* Messages */}
       <FlatList
         ref={flatListRef}
         data={messages}
-        renderItem={renderMessage}
         keyExtractor={item => item.id}
-        contentContainerStyle={{ padding: 12 }}
+        renderItem={({ item }) => {
+          const isMine = item.sender_id === user?.id;
+          const time = item.inserted_at ? new Date(item.inserted_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "";
+          return (
+            <View style={[styles.message, isMine ? styles.myMessage : styles.theirMessage]}>
+              <Text style={isMine ? styles.myText : styles.theirText}>{item.content}</Text>
+              <Text style={styles.timestamp}>{time}</Text>
+            </View>
+          );
+        }}
         onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-        onLayout={() => flatListRef.current?.scrollToEnd({ animated: false })}
+        onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
+        contentContainerStyle={{ paddingBottom: 12 }}
       />
 
+      {/* Input */}
       <View style={styles.inputContainer}>
-        <TextInput value={input} onChangeText={setInput} style={styles.input} placeholder="Typ een bericht..." />
+        <TextInput value={newMessage} onChangeText={setNewMessage} placeholder="Typ een bericht..." style={styles.input} />
         <TouchableOpacity onPress={sendMessage}>
-          <Ionicons name="send" size={24} color={theme.colors.primary} />
+          <Text style={styles.send}>Verzend</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -143,51 +165,78 @@ Voeg hier je beschrijving toe:
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "backgroundColor",
+    backgroundColor: theme.colors.backgroundColor,
   },
-  header: {
-    padding: 16,
-    backgroundColor: theme.colors.primary,
-    flexDirection: "row",
-    justifyContent: "space-between",
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
     alignItems: "center",
   },
-  headerText: {
-    color: theme.colors.textLight,
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12,
+    borderBottomWidth: 1,
+    borderColor: "#ddd",
+    backgroundColor: "#fff",
+  },
+  headerTitle: {
     fontSize: 18,
     fontWeight: "bold",
+    marginLeft: 10,
   },
-  bubble: {
-    maxWidth: "75%",
-    padding: 10,
-    borderRadius: 12,
-    marginBottom: 8,
-  },
-  bubbleLeft: {
-    alignSelf: "flex-start",
+  avatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: "#eee",
   },
-  bubbleRight: {
-    alignSelf: "flex-end",
-    backgroundColor: theme.colors.primary,
+  message: {
+    margin: 8,
+    padding: 10,
+    borderRadius: 10,
+    maxWidth: "80%",
   },
-  bubbleText: {
-    color: "#000",
+  myMessage: {
+    backgroundColor: theme.colors.primary,
+    alignSelf: "flex-end",
+  },
+  theirMessage: {
+    backgroundColor: "#eee",
+    alignSelf: "flex-start",
+  },
+  myText: {
+    color: "#fff",
+  },
+  theirText: {
+    color: theme.colors.textDark,
+  },
+  timestamp: {
+    fontSize: 10,
+    color: "#999",
+    marginTop: 4,
+    alignSelf: "flex-end",
   },
   inputContainer: {
     flexDirection: "row",
-    padding: 12,
+    padding: 8,
     borderTopWidth: 1,
     borderColor: "#ccc",
-    alignItems: "center",
-    gap: 12,
+    backgroundColor: "#fff",
   },
   input: {
     flex: 1,
-    padding: 8,
-    backgroundColor: "#fff",
-    borderRadius: 8,
     borderWidth: 1,
     borderColor: "#ccc",
+    borderRadius: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginRight: 8,
+    backgroundColor: "#f9f9f9",
+  },
+  send: {
+    color: theme.colors.primary,
+    fontWeight: "bold",
+    alignSelf: "center",
   },
 });
