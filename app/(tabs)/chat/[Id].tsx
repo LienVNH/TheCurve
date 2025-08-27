@@ -26,9 +26,9 @@ export default function ChatDetail() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [chatPartner, setChatPartner] = useState<User | null>(null);
   const [newMessage, setNewMessage] = useState("");
+  const [isSending, setIsSending] = useState(false);
   const flatListRef = useRef<FlatList<Message>>(null);
 
-  // ✅ Realtime en initiële fetch
   useEffect(() => {
     if (!chatId || !user) return;
 
@@ -60,46 +60,36 @@ export default function ChatDetail() {
     };
   }, [chatId, user]);
 
-  // ✅ Ophalen berichten
   async function fetchMessages() {
-    console.log("[ChatDetail] Start fetchMessages()");
-
-
     const { data, error } = await supabase.from("messages").select("*").eq("chat_id", chatId).order("inserted_at", { ascending: true });
 
-    if (error) {
-      console.error("Fout bij ophalen berichten:", error.message);
-      return;
-    }
-    console.log("[ChatDetail] Berichten opgehaald:", data);
-    setMessages(data || []);
+    if (!error && data) setMessages(data);
   }
 
-  // ✅ Partner ophalen
   async function fetchChatPartner() {
-    console.log("[ChatDetail] Start fetchChatPartner() met chatId:", chatId);
     const { data, error } = await supabase
       .from("chats")
-      .select("id, user1_id, user2_id, user1:profiles!user1_id(id, username, avatar_url), user2:profiles!user2_id(id, username, avatar_url)")
+      .select(
+        `
+        id, user1_id, user2_id,
+        user1:profiles!user1_id(id, username, avatar_url),
+        user2:profiles!user2_id(id, username, avatar_url)
+      `
+      )
       .eq("id", chatId)
       .single();
 
-    if (error || !data) {
-      console.error("Fout bij ophalen chatpartner:", error?.message);
-      return;
+    if (!error && data) {
+      const isUser1 = data.user1_id === user?.id;
+      const partner = isUser1 ? data.user2 : data.user1;
+      setChatPartner(Array.isArray(partner) ? partner[0] : partner);
     }
-
-    console.log("[ChatDetail] Chatpartner raw data:", data);
-
-    const isUser1 = data.user1_id === user?.id;
-    const partner = isUser1 ? data.user2 : data.user1;
-    setChatPartner(Array.isArray(partner) ? partner[0] : partner);
-    
   }
 
-  // ✅ Bericht verzenden
   async function sendMessage() {
     if (!newMessage.trim() || !user || !chatId) return;
+
+    setIsSending(true);
 
     const { error } = await supabase.from("messages").insert({
       chat_id: chatId,
@@ -107,11 +97,19 @@ export default function ChatDetail() {
       content: newMessage.trim(),
     });
 
-    if (error) {
-      console.error("Fout bij versturen:", error.message);
-    } else {
-      setNewMessage(""); // Laat realtime het bericht toevoegen
+    if (!error) {
+      setNewMessage("");
+      await fetchMessages(); // forceer herladen
+      scrollToEnd();
     }
+
+    setIsSending(false);
+  }
+
+  function scrollToEnd() {
+    setTimeout(() => {
+      flatListRef.current?.scrollToEnd({ animated: true });
+    }, 100);
   }
 
   if (!chatPartner) {
@@ -123,7 +121,11 @@ export default function ChatDetail() {
   }
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 199 : 0}
+    >
       {/* Header */}
       <View style={styles.header}>
         <Image
@@ -146,16 +148,22 @@ export default function ChatDetail() {
             </View>
           );
         }}
-        onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-        onLayout={() => flatListRef.current?.scrollToEnd({ animated: true })}
-        contentContainerStyle={{ paddingBottom: 12 }}
+        onContentSizeChange={scrollToEnd}
+        onLayout={scrollToEnd}
+        contentContainerStyle={{ paddingBottom: 12, paddingTop: 8 }}
       />
 
       {/* Input */}
       <View style={styles.inputContainer}>
-        <TextInput value={newMessage} onChangeText={setNewMessage} placeholder="Typ een bericht..." style={styles.input} />
-        <TouchableOpacity onPress={sendMessage}>
-          <Text style={styles.send}>Verzend</Text>
+        <TextInput
+          value={newMessage}
+          onChangeText={setNewMessage}
+          placeholder={isSending ? "Bericht verzenden..." : "Typ een bericht..."}
+          style={styles.input}
+          editable={!isSending}
+        />
+        <TouchableOpacity onPress={sendMessage} disabled={isSending}>
+          <Text style={[styles.send, isSending && { opacity: 0.4 }]}>{isSending ? "..." : "Verzend"}</Text>
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -213,7 +221,8 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     flexDirection: "row",
-    padding: 8,
+    marginBottom: -40,
+    padding: 10,
     borderTopWidth: 1,
     borderColor: "#ccc",
     backgroundColor: "#fff",
@@ -226,11 +235,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     marginRight: 8,
+    paddingBottom: 25,
     backgroundColor: "#f9f9f9",
   },
   send: {
     color: theme.colors.primary,
     fontWeight: "bold",
     alignSelf: "center",
+    paddingHorizontal: 8,
   },
 });
