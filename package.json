@@ -7,7 +7,9 @@
     "build:web": "npx expo export --platform web",
     "build:android": "eas build --platform android",
     "build:ios": "eas build --platform ios",
-    "build:all": "npm run build:web && npm run build:android && npm run build:ios"
+    "build:all": "npm run build:web && npm run build:android && npm run build:ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
   },
   "dependencies": {
     "@dicebear/collection": "^9.2.2",

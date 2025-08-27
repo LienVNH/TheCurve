@@ -28,6 +28,7 @@ export default function ChatDetail() {
   const [newMessage, setNewMessage] = useState("");
   const flatListRef = useRef<FlatList<Message>>(null);
 
+  // ✅ Realtime en initiële fetch
   useEffect(() => {
     if (!chatId || !user) return;
 
@@ -59,18 +60,24 @@ export default function ChatDetail() {
     };
   }, [chatId, user]);
 
+  // ✅ Ophalen berichten
   async function fetchMessages() {
+    console.log("[ChatDetail] Start fetchMessages()");
+
+
     const { data, error } = await supabase.from("messages").select("*").eq("chat_id", chatId).order("inserted_at", { ascending: true });
 
     if (error) {
       console.error("Fout bij ophalen berichten:", error.message);
       return;
     }
-
+    console.log("[ChatDetail] Berichten opgehaald:", data);
     setMessages(data || []);
   }
 
+  // ✅ Partner ophalen
   async function fetchChatPartner() {
+    console.log("[ChatDetail] Start fetchChatPartner() met chatId:", chatId);
     const { data, error } = await supabase
       .from("chats")
       .select("id, user1_id, user2_id, user1:profiles!user1_id(id, username, avatar_url), user2:profiles!user2_id(id, username, avatar_url)")
@@ -82,11 +89,15 @@ export default function ChatDetail() {
       return;
     }
 
+    console.log("[ChatDetail] Chatpartner raw data:", data);
+
     const isUser1 = data.user1_id === user?.id;
     const partner = isUser1 ? data.user2 : data.user1;
     setChatPartner(Array.isArray(partner) ? partner[0] : partner);
+    
   }
 
+  // ✅ Bericht verzenden
   async function sendMessage() {
     if (!newMessage.trim() || !user || !chatId) return;
 
@@ -96,19 +107,10 @@ export default function ChatDetail() {
       content: newMessage.trim(),
     });
 
-    // Update last message
-    await supabase
-      .from("chats")
-      .update({
-        last_message: newMessage.trim(),
-        last_updated: new Date().toISOString(),
-      })
-      .eq("id", chatId);
-
     if (error) {
       console.error("Fout bij versturen:", error.message);
     } else {
-      setNewMessage("");
+      setNewMessage(""); // Laat realtime het bericht toevoegen
     }
   }
 
@@ -131,18 +133,16 @@ export default function ChatDetail() {
         <Text style={styles.headerTitle}>{chatPartner.username}</Text>
       </View>
 
-      {/* Messages */}
+      {/* Chat berichten */}
       <FlatList
         ref={flatListRef}
         data={messages}
         keyExtractor={item => item.id}
         renderItem={({ item }) => {
           const isMine = item.sender_id === user?.id;
-          const time = item.inserted_at ? new Date(item.inserted_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "";
           return (
             <View style={[styles.message, isMine ? styles.myMessage : styles.theirMessage]}>
               <Text style={isMine ? styles.myText : styles.theirText}>{item.content}</Text>
-              <Text style={styles.timestamp}>{time}</Text>
             </View>
           );
         }}
@@ -210,12 +210,6 @@ const styles = StyleSheet.create({
   },
   theirText: {
     color: theme.colors.textDark,
-  },
-  timestamp: {
-    fontSize: 10,
-    color: "#999",
-    marginTop: 4,
-    alignSelf: "flex-end",
   },
   inputContainer: {
     flexDirection: "row",
