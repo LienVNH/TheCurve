@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, SafeAreaView, TouchableOpacity, StyleSheet, Alert, Image } from "react-native";
+import { View, Text, TextInput, SafeAreaView, TouchableOpacity, StyleSheet, Alert, Image, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import { supabase } from "../../../lib/supabase";
 import { TOPICS } from "../../../constants/topics";
@@ -45,40 +45,42 @@ export default function NewPost() {
   const previewUrl = imagePath ? getLibraryPublicUrl(imagePath) : null;
 
   return (
-    <SafeAreaView style={{ flex: 1, padding: 20, marginTop: 20,  marginBottom: 20, marginLeft: 10, marginRight: 10 }}>
-      <Text style={globalStyles.titleL}>Nieuwe post</Text>
+    <SafeAreaView style={{ flex: 1, padding: 20, marginTop: 20, marginBottom: 20, marginLeft: 10, marginRight: 10 }}>
+      <ScrollView>
+        <Text style={globalStyles.titleL}>Nieuwe post</Text>
 
-      <Text style={styles.label}>Titel *</Text>
-      <TextInput value={title} onChangeText={setTitle} placeholder="Titel…" style={styles.input} />
+        <Text style={styles.label}>Titel *</Text>
+        <TextInput value={title} onChangeText={setTitle} placeholder="Titel…" style={styles.input} />
 
-      <Text style={styles.label}>Inhoud</Text>
-      <TextInput value={content} onChangeText={setContent} placeholder="Schrijf je bericht…" style={[styles.input, { height: 110 }]} multiline />
+        <Text style={styles.label}>Inhoud</Text>
+        <TextInput value={content} onChangeText={setContent} placeholder="Schrijf je bericht…" style={[styles.input, { height: 110 }]} multiline />
 
-      <Text style={styles.label}>Thema</Text>
-      <View style={styles.topicRow}>
-        {TOPICS.map(t => {
-          const active = topic === t.key;
-          return (
-            <TouchableOpacity key={t.key} style={[styles.topicChip, active && styles.topicActive]} onPress={() => setTopic(t.key)}>
-              <Text style={[styles.topicText, active && styles.topicTextActive]}>
-                {t.emoji} {t.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
+        <Text style={styles.label}>Thema</Text>
+        <View style={styles.topicRow}>
+          {TOPICS.map(t => {
+            const active = topic === t.key;
+            return (
+              <TouchableOpacity key={t.key} style={[styles.topicChip, active && styles.topicActive]} onPress={() => setTopic(t.key)}>
+                <Text style={[styles.topicText, active && styles.topicTextActive]}>
+                  {t.emoji} {t.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
 
-      <Text style={styles.label}>Afbeelding uit bibliotheek</Text>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-        <TouchableOpacity style={styles.pickBtn} onPress={() => setLibraryOpen(true)}>
-          <Text style={styles.pickTxt}>{imagePath ? "Andere afbeelding kiezen" : "Kies afbeelding"}</Text>
+        <Text style={styles.label}>Afbeelding uit bibliotheek</Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+          <TouchableOpacity style={styles.pickBtn} onPress={() => setLibraryOpen(true)}>
+            <Text style={styles.pickTxt}>{imagePath ? "Andere afbeelding kiezen" : "Kies afbeelding"}</Text>
+          </TouchableOpacity>
+          {previewUrl && <Image source={{ uri: previewUrl }} style={{ width: 60, height: 60, borderRadius: 8 }} />}
+        </View>
+
+        <TouchableOpacity disabled={saving} style={[styles.btn, saving && { opacity: 0.6 }]} onPress={save}>
+          <Text style={styles.btnTxt}>{saving ? "Opslaan…" : "Publiceren"}</Text>
         </TouchableOpacity>
-        {previewUrl && <Image source={{ uri: previewUrl }} style={{ width: 60, height: 60, borderRadius: 8 }} />}
-      </View>
-
-      <TouchableOpacity disabled={saving} style={[styles.btn, saving && { opacity: 0.6 }]} onPress={save}>
-        <Text style={styles.btnTxt}>{saving ? "Opslaan…" : "Publiceren"}</Text>
-      </TouchableOpacity>
+      </ScrollView>
 
       <LibraryGridPicker
         visible={libraryOpen}

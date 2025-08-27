@@ -12,7 +12,7 @@ export default function BottomTabs() {
     { label: "Profiel", icon: "person-outline", route: "/profile" },
     { label: "Vrienden", icon: "people-outline", route: "/friends" },
     { label: "Chats", icon: "chatbubble-outline", route: "/chats" },
-    { label: "Meer", icon: "newspaper-outline", route: "/buzz" },
+    { label: "Posts", icon: "newspaper-outline", route: "/buzz" },
   ];
 
   return (

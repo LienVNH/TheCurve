@@ -5,6 +5,7 @@ import { fetchPosts } from "../../services/posts";
 import TopicChips from "../../components/TopicChips";
 import PostCard from "../../components/PostCard";
 import type { Topic, Post } from "../../types/post";
+import { globalStyles } from "../../theme/globalStyles";
 
 export default function Buzz() {
   const router = useRouter();
@@ -15,12 +16,12 @@ export default function Buzz() {
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const loadingRef = useRef(false); // <- voorkomt overlappende loads
+  const loadingRef = useRef(false);
   const typingTimer = useRef<number | null>(null);
 
   const load = useCallback(
     async ({ reset = false } = {}) => {
-      if (loadingRef.current) return; // al bezig
+      if (loadingRef.current) return;
       if (!hasMore && !reset) return;
 
       loadingRef.current = true;
@@ -30,7 +31,6 @@ export default function Buzz() {
 
         setPosts(prev => {
           const base = reset ? [] : prev;
-          // de-dupe op id
           const map = new Map(base.map(p => [p.id, p]));
           for (const it of items) map.set(it.id, it);
           return Array.from(map.values());
@@ -45,7 +45,6 @@ export default function Buzz() {
     [topic, search, page, hasMore]
   );
 
-  // Init één keer
   useEffect(() => {
     (async () => {
       setLoading(true);
@@ -55,12 +54,10 @@ export default function Buzz() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Reload bij topic wijziging
   useEffect(() => {
     load({ reset: true });
   }, [topic, load]);
 
-  
   useEffect(() => {
     if (typingTimer.current) clearTimeout(typingTimer.current);
     typingTimer.current = setTimeout(() => load({ reset: true }), 350);
@@ -75,12 +72,13 @@ export default function Buzz() {
     setRefreshing(false);
   };
 
-  if (loading)
+  if (loading) {
     return (
-      <SafeAreaView style={styles.center}>
+      <SafeAreaView style={[globalStyles.container, styles.center]}>
         <ActivityIndicator />
       </SafeAreaView>
     );
+  }
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -88,19 +86,10 @@ export default function Buzz() {
         data={posts}
         keyExtractor={(item, index) => `${item.id}-${index}`}
         ListHeaderComponent={
-          <View style={{ gap: 10, paddingVertical: 10 }}>
-            <View style={{ alignItems: "center" }}>
-              <Text style={{ fontSize: 20, fontWeight: "800" }}>Buzz</Text>
-            </View>
+          <View style={[globalStyles.container, { paddingVertical: 12, gap: 10 }]}>
+            <Text style={globalStyles.titleL}>Posts</Text>
             <TopicChips current={topic} onChange={setTopic} />
-            <View style={{ paddingHorizontal: 12 }}>
-              <TextInput
-                placeholder="Waar wil je over lezen?"
-                value={search}
-                onChangeText={setSearch}
-                style={{ backgroundColor: "#EEF1E8", padding: 12, borderRadius: 14, borderWidth: 1, borderColor: "rgba(0,0,0,0.08)" }}
-              />
-            </View>
+            <TextInput placeholder="Waar wil je over lezen?" value={search} onChangeText={setSearch} style={globalStyles.input} />
           </View>
         }
         renderItem={({ item }) => (
@@ -117,27 +106,22 @@ export default function Buzz() {
         contentContainerStyle={{ paddingBottom: 80 }}
       />
 
-      {/* Floating + */}
-      <TouchableOpacity style={styles.fab} onPress={() => router.push("/post/new")}>
-        <Text style={styles.fabTxt}>＋</Text>
+      {/* Floating + in globale button-stijl */}
+      <TouchableOpacity style={[globalStyles.button, styles.fabButtonShape]} onPress={() => router.push("/post/new")}>
+        <Text style={globalStyles.buttonText}>＋</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  center: { flex: 1, alignItems: "center", justifyContent: "center" },
-  fab: {
+  center: { justifyContent: "center", alignItems: "center", flex: 1 },
+  fabButtonShape: {
     position: "absolute",
-    right: 16,
+    right: 8,
     bottom: 24,
-    width: 56,
-    height: 56,
     borderRadius: 28,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#1f6f3f",
-    elevation: 3,
+    paddingVertical: 12,
+    paddingHorizontal: 2,
   },
-  fabTxt: { color: "#fff", fontSize: 30, lineHeight: 30, marginTop: -2 },
 });
