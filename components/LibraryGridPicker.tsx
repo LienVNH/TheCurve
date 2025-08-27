@@ -1,39 +1,65 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { View, Text, TextInput, FlatList, Image, TouchableOpacity, StyleSheet, Modal } from "react-native";
 import { TOPICS } from "../constants/topics";
 import type { Topic } from "../types/post";
 import { fetchLibrary, getLibraryPublicUrl, LibraryImage } from "../services/imageLibrary";
 
-type Props = {
+export default function LibraryGridPicker({
+  visible,
+  onClose,
+  onSelect,
+}: {
   visible: boolean;
   onClose: () => void;
   onSelect: (img: LibraryImage) => void;
-};
-
-export default function LibraryGridPicker({ visible, onClose, onSelect }: Props) {
+}) {
   const [topic, setTopic] = useState<Topic | "all">("all");
   const [search, setSearch] = useState("");
   const [items, setItems] = useState<LibraryImage[]>([]);
   const [loading, setLoading] = useState(false);
 
-  async function load() {
+  const loadingRef = useRef(false);
+  const reqIdRef = useRef(0);
+  const debounceRef = useRef<number | null>(null);
+
+  function mergeUnique(next: LibraryImage[]) {
+    const seen = new Set<string>();
+    const out: LibraryImage[] = [];
+    for (const it of next) {
+      if (!seen.has(it.id)) {
+        seen.add(it.id);
+        out.push(it);
+      }
+    }
+    return out;
+  }
+
+  const load = async () => {
+    if (loadingRef.current) return;
+    loadingRef.current = true;
+    const myReq = ++reqIdRef.current;
     setLoading(true);
     try {
-      setItems(await fetchLibrary({ topic, search, limit: 100 }));
+      const data = await fetchLibrary({ topic, search, limit: 100 });
+      if (myReq !== reqIdRef.current) return; // stale response
+      setItems(mergeUnique(data)); // <-- de-dupe
     } finally {
       setLoading(false);
+      loadingRef.current = false;
     }
-  }
+  };
 
   useEffect(() => {
     if (visible) load();
   }, [visible]);
   useEffect(() => {
-    if (visible) {
-      const t = setTimeout(load, 250);
-      return () => clearTimeout(t);
-    }
-  }, [topic, search]);
+    if (!visible) return;
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(load, 250);
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [topic, search, visible]);
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
@@ -43,7 +69,7 @@ export default function LibraryGridPicker({ visible, onClose, onSelect }: Props)
         <TextInput placeholder="Zoek op titel…" value={search} onChangeText={setSearch} style={styles.search} />
         <FlatList
           data={items}
-          keyExtractor={it => it.id}
+          keyExtractor={(it, idx) => `${it.id}-${idx}`} // <-- veilige key
           numColumns={3}
           contentContainerStyle={{ padding: 10 }}
           renderItem={({ item }) => {
@@ -73,7 +99,7 @@ function Chips({ current, onChange }: { current: Topic | "all"; onChange: (t: To
     <FlatList
       horizontal
       data={all}
-      keyExtractor={(i: any) => i.key}
+      keyExtractor={(i: any) => `chip-${i.key}`} // expliciet prefix
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={{ paddingHorizontal: 10, gap: 8 }}
       renderItem={({ item }: any) => {

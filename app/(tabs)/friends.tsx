@@ -195,7 +195,7 @@ export default function Friends() {
     const body = encodeURIComponent(
       `Gebruiker ${user?.email} wil wangedrag melden van ${friend.username} (${friend.id}).\n\nVoeg hier je beschrijving toe:\n...`
     );
-    const mailto = `mailto:Kolibrievnh@ygmail.com?subject=${subject}&body=${body}`;
+    const mailto = `mailto:Kolibrievnh@gmail.com?subject=${subject}&body=${body}`;
     Linking.openURL(mailto);
   }
 

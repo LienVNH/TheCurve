@@ -92,7 +92,7 @@ export default function Auth() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios"?100:400} style={{ flex: 1 }}>
+      keyboardVerticalOffset={Platform.OS === "ios"? 50:100} style={{ flex: 1 }}>
       <View style={[globalStyles.container, { flex: 1, justifyContent: "center" }]}>
         <Animated.View style={{ alignItems: "center", opacity: logoOpacity }}>
           <Image source={require("../../assets/logo.png")} style={styles.logo} />

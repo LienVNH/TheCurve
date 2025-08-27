@@ -7,6 +7,7 @@ import type { Topic } from "../../../types/post";
 import LibraryGridPicker from "../../../components/LibraryGridPicker";
 import { getLibraryPublicUrl } from "../../../services/imageLibrary";
 import { createPost } from "../../../services/posts";
+import { globalStyles } from "../../../theme/globalStyles";
 
 export default function NewPost() {
   const router = useRouter();
@@ -44,8 +45,8 @@ export default function NewPost() {
   const previewUrl = imagePath ? getLibraryPublicUrl(imagePath) : null;
 
   return (
-    <SafeAreaView style={{ flex: 1, padding: 16 }}>
-      <Text style={styles.h1}>Nieuwe post</Text>
+    <SafeAreaView style={{ flex: 1, padding: 20, marginTop: 20,  marginBottom: 20, marginLeft: 10, marginRight: 10 }}>
+      <Text style={globalStyles.titleL}>Nieuwe post</Text>
 
       <Text style={styles.label}>Titel *</Text>
       <TextInput value={title} onChangeText={setTitle} placeholder="Titel…" style={styles.input} />
@@ -100,11 +101,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 8,
     borderRadius: 10,
-    backgroundColor: "#F2F0E6",
+    backgroundColor: "#c6b351ff",
     borderWidth: 1,
     borderColor: "rgba(0,0,0,0.08)",
   },
-  topicActive: { backgroundColor: "#E3F2E8", borderColor: "#4D7C57" },
+  topicActive: { backgroundColor: "#517f61ff", borderColor: "#4D7C57" },
   topicText: { fontSize: 13 },
   topicTextActive: { fontWeight: "700" },
   pickBtn: {
