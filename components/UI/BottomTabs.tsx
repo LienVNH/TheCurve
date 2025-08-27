@@ -11,8 +11,8 @@ export default function BottomTabs() {
   const tabs = [
     { label: "Profiel", icon: "person-outline", route: "/profile" },
     { label: "Vrienden", icon: "people-outline", route: "/friends" },
-     { label: "Chats", icon: "chatbubble-outline", route: "/chats" },
-    // { label: "Meer", icon: "menu-outline", route: "/more" },
+    { label: "Chats", icon: "chatbubble-outline", route: "/chats" },
+    { label: "Meer", icon: "newspaper-outline", route: "/buzz" },
   ];
 
   return (

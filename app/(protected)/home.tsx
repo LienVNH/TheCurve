@@ -5,7 +5,7 @@ import { Text, View, KeyboardAvoidingView, Platform, ActivityIndicator, StyleShe
 import { globalStyles } from "../../theme/globalStyles";
 import Headerstart from "../../components/UI/Headerstart";
 import BottomTabs from "../../components/UI/BottomTabs";
-import Posts from "../../components/Posts";
+import Posts from "../../components/TopicChips";
 
 export default function Home() {
   const { user } = useContext(AuthContext);
@@ -54,7 +54,7 @@ export default function Home() {
           </Text>
         </View>
 
-        <Posts />
+        
       </ScrollView>
 
       <BottomTabs />
