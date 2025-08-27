@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 import { theme } from "../../theme/theme";
 import { AuthContext } from "../../context/AuthContext";
 import { supabase } from "../../lib/supabase";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function Header({ variant = "default", chatName = "" }: { variant?: "default" | "personal" | "chat"; chatName?: string }) {
   const router = useRouter();
@@ -38,7 +39,7 @@ export default function Header({ variant = "default", chatName = "" }: { variant
           )}
           <Text style={styles.title}>Welkom, {profile?.username || user.email}!</Text>
           <Pressable onPress={handleLogout} style={({ pressed }) => [styles.logoutButton, pressed && styles.logoutPressed]}>
-            <Text style={styles.logoutIcon}>👤</Text>
+            <Ionicons name="log-out-outline" size={20} color="#1B4332" />
           </Pressable>
         </View>
       ) : variant === "chat" ? (
@@ -52,7 +53,7 @@ export default function Header({ variant = "default", chatName = "" }: { variant
         <View style={styles.row}>
           <Image source={require("../../assets/the.png")} style={styles.logo} resizeMode="contain" />
           <Pressable onPress={handleLogout} style={({ pressed }) => [styles.logoutButton, pressed && styles.logoutPressed]}>
-            <Text style={styles.logoutIcon}>👤</Text>
+            <Ionicons name="log-out-outline" size={20} color="#1B4332" />
           </Pressable>
         </View>
       )}
@@ -98,11 +99,16 @@ const styles = StyleSheet.create({
     borderColor: "white", // kleur komt overeen met begroetingskleur
   },
   logoutButton: {
-    backgroundColor: "primary",
-    borderWidth: 2,
-    borderColor: "#F7F7EF", // zachte groene achtergrond
+    backgroundColor: "#F7F7EF",
     borderRadius: 20,
     padding: 6,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 3,
   },
   logoutPressed: {
     borderColor: "#1B4332", // donkergroen bij indrukken

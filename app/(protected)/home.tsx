@@ -69,7 +69,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   welcomeBox: {
-    backgroundColor: "#c09e5f",
+    backgroundColor: "#e1c38bff",
+    
+    width: "90%",
     padding: 20,
     fontWeight: "bold",
     borderRadius: 16,
