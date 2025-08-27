@@ -124,7 +124,7 @@ export default function ChatDetail() {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 199 : 0}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 150 : 0}
     >
       {/* Header */}
       <View style={styles.header}>
@@ -221,8 +221,7 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     flexDirection: "row",
-    marginBottom: -40,
-    padding: 10,
+    padding: 8,
     borderTopWidth: 1,
     borderColor: "#ccc",
     backgroundColor: "#fff",
@@ -235,7 +234,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     marginRight: 8,
-    paddingBottom: 25,
     backgroundColor: "#f9f9f9",
   },
   send: {
