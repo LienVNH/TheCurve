@@ -63,11 +63,11 @@ export default function Header({ variant = "default", chatName = "" }: { variant
 const styles = StyleSheet.create({
   container: {
     backgroundColor: theme.colors.primary,
-    
-    marginLeft: -25,
-    marginRight: -25,
+    height: 120,
+    flexDirection: "row",
+    marginLeft: 0,
+    marginRight: 0,
     paddingRight: 35,
-    paddingBottom: 15,
     paddingHorizontal: 20,
     paddingTop: 15,
   },
@@ -76,15 +76,14 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    
   },
   logo: {
     position: "relative",
-    width: 120,
+    width: 60,
     height: 60,
   },
   title: {
-    color: "white",
+    color: "#F7F7EF",
     fontSize: 18,
     fontWeight: "bold",
     flex: 1,

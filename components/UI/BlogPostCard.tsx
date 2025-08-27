@@ -10,7 +10,7 @@ type Props = {
 export default function BlogPostCard({ title, summary }: Props) {
   return (
     <View style={globalStyles.card}>
-      <Text style={globalStyles.title}>{title}</Text>
+      <Text style={globalStyles.titleL}>{title}</Text>
       <Text style={globalStyles.textDark}>{summary}</Text>
     </View>
   );

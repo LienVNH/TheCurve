@@ -37,6 +37,7 @@ const styles = StyleSheet.create({
   },
   header: {
     zIndex: 1,
+    paddingTop: Platform.OS === "ios" ? 10 : 0,
   },
   content: {
     flex: 1,
@@ -50,9 +51,10 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.primary,
     borderTopWidth: 1,
     borderTopColor: theme.colors.border,
-    height: 70,
+    maxHeight: 400,
     justifyContent: "center",
     paddingBottom: Platform.OS === "ios" ? 10 : 0,
+
     zIndex: 2,
   },
 });

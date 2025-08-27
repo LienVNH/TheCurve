@@ -155,4 +155,21 @@ export const globalStyles = StyleSheet.create({
   iconButtonWarning: {
     backgroundColor: theme.colors.warning,
   },
+  iconButtonText: {
+    color: theme.colors.textLight,
+    fontSize: theme.font.size.lg,
+    fontWeight: "bold",
+  },
+  header: {
+    width: "100%",
+    marginLeft: -20,
+    marginRight: -20,
+    paddingLeft: 100,
+    padding: theme.spacing.md,
+    backgroundColor: theme.colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: theme.spacing.lg,
+  },
+  
 });

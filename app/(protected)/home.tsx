@@ -3,7 +3,7 @@ import { AuthContext } from "../../context/AuthContext";
 import { supabase } from "../../lib/supabase";
 import { Text, View, KeyboardAvoidingView, Platform, ActivityIndicator, StyleSheet, ScrollView } from "react-native";
 import { globalStyles } from "../../theme/globalStyles";
-import Header from "../../components/UI/Header";
+import Headerstart from "../../components/UI/Headerstart";
 import BottomTabs from "../../components/UI/BottomTabs";
 import Posts from "../../components/Posts";
 
@@ -37,7 +37,7 @@ export default function Home() {
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
-      <Header variant="personal" />
+      <Headerstart variant="personal" />
 
       <ScrollView contentContainerStyle={[globalStyles.container, { paddingBottom: 100 }]}>
         <View style={styles.welcomeBox}>
