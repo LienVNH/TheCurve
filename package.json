@@ -7,7 +7,9 @@
     "build:web": "npx expo export --platform web",
     "build:android": "eas build --platform android",
     "build:ios": "eas build --platform ios",
-    "build:all": "npm run build:web && npm run build:android && npm run build:ios"
+    "build:all": "npm run build:web && npm run build:android && npm run build:ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
   },
   "dependencies": {
     "@dicebear/collection": "^9.2.2",
@@ -18,8 +20,6 @@
     "@react-native-picker/picker": "^2.11.0",
     "@react-navigation/native": "^7.1.6",
     "@react-navigation/native-stack": "^7.3.10",
-    "@rneui/base": "^4.0.0-rc.7",
-    "@rneui/themed": "^4.0.0-rc.8",
     "@supabase/supabase-js": "^2.50.0",
     "aes-js": "^3.1.2",
     "bad-words": "^4.0.0",

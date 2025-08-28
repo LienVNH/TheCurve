@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Alert, StyleSheet, View, Animated, Image, AppState, TextInput, Text, TouchableOpacity } from "react-native";
+import { Alert, StyleSheet, View, Animated, Image, AppState, TextInput, Text, TouchableOpacity, ScrollView } from "react-native";
 import { supabase } from "../../lib/supabase";
 import { globalStyles } from "../../theme/globalStyles";
 import { useRouter } from "expo-router";
@@ -61,7 +61,7 @@ export default function Auth() {
       return;
     }
 
-    const isIncomplete = !profile?.username || !profile?.birthdate || !profile?.since_diabetes || !profile?.interests || !profile?.accepted_terms;
+    const isIncomplete = !profile?.username || !profile?.birthdate || !profile?.since_diabetes || !profile?.interests.length || !profile?.accepted_terms;
 
     if (isIncomplete) {
       router.replace("/onboarding");
@@ -90,12 +90,14 @@ export default function Auth() {
   }
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios"? 50:100} style={{ flex: 1 }}>
       <View style={[globalStyles.container, { flex: 1, justifyContent: "center" }]}>
         <Animated.View style={{ alignItems: "center", opacity: logoOpacity }}>
-          <Image source={require("../../assets/logo.png")} style={styles.logo} />
+          <Image source={require("../../assets/app_logo.png")} style={styles.logo} />
         </Animated.View>
-
+        
         <Text style={globalStyles.textDark}>E-mailadres</Text>
         <TextInput
           style={globalStyles.input}

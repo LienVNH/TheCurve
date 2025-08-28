@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, FlatList, Alert, TextInput, Image, ScrollView, ActivityIndicator, Linking } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Alert, TextInput, Image, ActivityIndicator, Linking } from "react-native";
 import { supabase } from "../../lib/supabase";
 import { AuthContext } from "../../context/AuthContext";
 import { globalStyles } from "../../theme/globalStyles";
@@ -12,7 +12,7 @@ export default function Friends() {
   const [searchQuery, setSearchQuery] = useState("");
   const [friendRequests, setFriendRequests] = useState<any[]>([]);
   const [friends, setFriends] = useState<any[]>([]);
-  const [sentRequests, setSentRequests] = useState<string[]>([]);
+  const [sentRequests, setSentRequests] = useState<any[]>([]);
 
   useEffect(() => {
     if (!user) return;
@@ -70,31 +70,44 @@ export default function Friends() {
 
   async function loadSentRequests() {
     if (!user) return;
-    const { data, error } = await supabase.from("friends").select("receiver_id").eq("requester_id", user.id).eq("status", "pending");
+    const { data, error } = await supabase
+      .from("friends")
+      .select(
+        `
+        id,
+        receiver_id,
+        receiver:profiles!receiver_id(id, username, avatar_url)
+      `
+      )
+      .eq("requester_id", user.id)
+      .eq("status", "pending");
 
     if (error) {
       Alert.alert("Fout bij ophalen verzonden verzoeken", error.message);
       return;
     }
 
-    setSentRequests(data?.map(r => r.receiver_id) || []);
+    setSentRequests(data?.map(r => r.receiver) || []);
   }
 
   async function loadFriends() {
     if (!user) return;
-    const { data } = await supabase.rpc("get_friends", { current_user_id: user.id });
+    const { data, error } = await supabase.rpc("get_friends", { current_user_id: user.id });
+    if (error) {
+      Alert.alert("Fout bij ophalen vrienden", error.message);
+      return;
+    }
     setFriends(data || []);
   }
 
-  async function sendFriendRequest(toId: string) {
-    if (!user || sentRequests.includes(toId)) return;
+  async function sendFriendRequest(toId: string, username: string) {
+    if (!user || sentRequests.find(r => r.id === toId) || friends.find(f => f.id === toId)) return;
 
     const { data: existing } = await supabase
       .from("friends")
       .select("id")
-      .eq("requester_id", user.id)
-      .eq("receiver_id", toId)
-      .neq("status", "declined")
+      .or(`and(requester_id.eq.${user.id},receiver_id.eq.${toId}),and(requester_id.eq.${toId},receiver_id.eq.${user.id})`)
+      .not("status", "eq", "declined")
       .maybeSingle();
 
     if (existing) {
@@ -110,27 +123,29 @@ export default function Friends() {
 
     if (error) Alert.alert("Fout bij verzenden uitnodiging", error.message);
     else {
+      Alert.alert(`Vriendschapsverzoek verzonden naar ${username}`);
       loadUsers();
       loadSentRequests();
     }
   }
 
   async function respondToRequest(requestId: string, accept: boolean) {
-    const { error } = await supabase
-      .from("friends")
-      .update({ status: accept ? "accepted" : "declined" })
-      .eq("id", requestId);
-
-    if (error) Alert.alert("Fout bij beantwoorden", error.message);
-    else {
-      loadFriendRequests();
-      loadFriends();
-    }
-  }
-
-  async function startChat(friendId: string) {
     if (!user) return;
 
+    if (!accept) {
+      await supabase.from("friends").update({ status: "declined" }).eq("id", requestId);
+      loadFriendRequests();
+      return;
+    }
+
+    const { data: requestData, error: fetchError } = await supabase.from("friends").select("requester_id").eq("id", requestId).single();
+
+    if (fetchError || !requestData) {
+      Alert.alert("Fout bij ophalen verzoek", fetchError?.message || "Geen data");
+      return;
+    }
+
+    const friendId = requestData.requester_id;
     const sortedIds = [user.id, friendId].sort();
     const user1 = sortedIds[0];
     const user2 = sortedIds[1];
@@ -141,37 +156,46 @@ export default function Friends() {
       .or(`and(user1_id.eq.${user1},user2_id.eq.${user2}),and(user1_id.eq.${user2},user2_id.eq.${user1})`)
       .maybeSingle();
 
-    let chatId;
+    if (!existingChat) {
+      await supabase.from("chats").insert({ user1_id: user1, user2_id: user2 });
+    }
 
-    if (existingChat) {
-      chatId = existingChat.id;
-    } else {
-      const { data, error } = await supabase.from("chats").insert({ user1_id: user1, user2_id: user2 }).select().single();
+    await supabase.from("friends").update({ status: "accepted" }).eq("id", requestId);
+    loadFriendRequests();
+    loadFriends();
+  }
 
-      if (error || !data) {
-        Alert.alert("Fout bij starten gesprek", error?.message || "Onbekende fout");
+  async function startChat(friendId: string) {
+    if (!user) return;
+
+    const sortedIds = [user.id, friendId].sort();
+    const user1 = sortedIds[0];
+    const user2 = sortedIds[1];
+
+    try {
+      const { data: existingChat, error } = await supabase
+        .from("chats")
+        .select("id")
+        .or(`and(user1_id.eq.${user1},user2_id.eq.${user2}),and(user1_id.eq.${user2},user2_id.eq.${user1})`)
+        .maybeSingle();
+
+      if (error || !existingChat) {
+        Alert.alert("Fout bij openen chat", error?.message || "Geen bestaande chat");
         return;
       }
 
-      chatId = data.id;
+      router.push(`/chat/${existingChat.id}`);
+    } catch (err) {
+      console.error("❌ Onverwachte fout:", err);
     }
-
-    router.push(`chat/${chatId}`);
   }
 
   function reportUser(friend: any) {
     const subject = encodeURIComponent("Melding van wangedrag in Applicatie tijdens een privéchat");
     const body = encodeURIComponent(
-      `
-Gebruiker ${user?.email} wil wangedrag melden van ${friend.username} (${friend.id}).
-
-Voeg hier je beschrijving toe:
-
-...
-    `.trim()
+      `Gebruiker ${user?.email} wil wangedrag melden van ${friend.username} (${friend.id}).\n\nVoeg hier je beschrijving toe:\n...`
     );
-
-    const mailto = `mailto:Kolibrievnh@ygmail.com?subject=${subject}&body=${body}`;
+    const mailto = `mailto:Kolibrievnh@gmail.com?subject=${subject}&body=${body}`;
     Linking.openURL(mailto);
   }
 
@@ -185,76 +209,85 @@ Voeg hier je beschrijving toe:
   }
 
   const availableUsers = allUsers.filter(
-    u => u.username?.toLowerCase().includes(searchQuery.toLowerCase()) && !sentRequests.includes(u.id) && !friends.find(f => f.id === u.id)
+    u => u.username?.toLowerCase().includes(searchQuery.toLowerCase()) && !sentRequests.some(r => r.id === u.id) && !friends.some(f => f.id === u.id)
   );
 
   return (
-    <ScrollView contentContainerStyle={{ flexGrow: 1 }} style={{ flex: 1 }}>
-      <View style={{ flex: 1 }}>
-        <View style={[globalStyles.container, { flex: 1 }]}>
-          <Text style={globalStyles.titleL}>Nieuwe vrienden uitnodigen</Text>
-          <TextInput placeholder="Zoek op naam..." value={searchQuery} onChangeText={setSearchQuery} style={styles.searchInput} />
+    <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+      <View style={globalStyles.container}>
+        <Text style={globalStyles.titleL}>Nieuwe vrienden uitnodigen</Text>
+        <TextInput placeholder="Zoek op naam..." value={searchQuery} onChangeText={setSearchQuery} style={styles.searchInput} />
 
-          <FlatList
-            data={availableUsers}
-            keyExtractor={item => item.id}
-            renderItem={({ item }) => (
-              <View style={styles.userCard}>
+        {availableUsers.map(item => (
+          <View key={`new-${item.id}`} style={styles.userCard}>
+            <View style={styles.userInfo}>
+              <Image source={{ uri: item.avatar_url || `https://api.dicebear.com/9.x/notionists/png?seed=${item.id}` }} style={styles.avatar} />
+              <Text style={styles.username}>{item.username}</Text>
+            </View>
+            <TouchableOpacity onPress={() => sendFriendRequest(item.id, item.username)}>
+              <Text style={styles.addButton}>+ Voeg toe</Text>
+            </TouchableOpacity>
+          </View>
+        ))}
+
+        {sentRequests.length > 0 && (
+          <>
+            <Text style={globalStyles.titleL}>Verzonden verzoeken</Text>
+            {sentRequests.map(req => (
+              <View key={`sent-${req.id}`} style={styles.userCard}>
                 <View style={styles.userInfo}>
-                  <Image source={{ uri: item.avatar_url || `https://api.dicebear.com/9.x/notionists/png?seed=${item.id}` }} style={styles.avatar} />
-                  <Text style={styles.username}>{item.username}</Text>
+                  <Image source={{ uri: req.avatar_url || `https://api.dicebear.com/9.x/notionists/png?seed=${req.id}` }} style={styles.avatar} />
+                  <Text style={styles.username}>{req.username}</Text>
                 </View>
-                <TouchableOpacity onPress={() => sendFriendRequest(item.id)}>
-                  <Text style={styles.addButton}>+ Voeg toe</Text>
-                </TouchableOpacity>
+                <Text style={styles.invited}>Verzoek verzonden</Text>
               </View>
+            ))}
+          </>
+        )}
+
+        <Text style={globalStyles.titleL}>Vriendverzoeken</Text>
+        {friendRequests.length === 0 && <Text style={{ fontStyle: "italic" }}>Geen openstaande verzoeken.</Text>}
+        {friendRequests.map(req => (
+          <View key={`req-${req.id}`} style={styles.row}>
+            {req?.requester && (
+              <>
+                <View style={styles.userInfo}>
+                  <Image
+                    source={{ uri: req.requester.avatar_url || `https://api.dicebear.com/9.x/notionists/png?seed=${req.requester.id}` }}
+                    style={styles.avatar}
+                  />
+                  <Text style={styles.username}>{req.requester.username}</Text>
+                </View>
+                <View style={styles.row}>
+                  <TouchableOpacity onPress={() => respondToRequest(req.id, true)}>
+                    <Text style={styles.accept}>✅</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => respondToRequest(req.id, false)}>
+                    <Text style={styles.decline}>❌</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
             )}
-          />
+          </View>
+        ))}
 
-          <Text style={globalStyles.titleL}>Vriendverzoeken</Text>
-          {friendRequests.length === 0 && <Text style={{ fontStyle: "italic" }}>Geen openstaande verzoeken.</Text>}
-          {friendRequests.map(req => (
-            <View key={req.id} style={styles.row}>
-              {req?.requester && (
-                <>
-                  <View style={styles.userInfo}>
-                    <Image
-                      source={{ uri: req.requester.avatar_url || `https://api.dicebear.com/9.x/notionists/png?seed=${req.requester.id}` }}
-                      style={styles.avatar}
-                    />
-                    <Text style={styles.username}>{req.requester.username}</Text>
-                  </View>
-                  <View style={styles.row}>
-                    <TouchableOpacity onPress={() => respondToRequest(req.id, true)}>
-                      <Text style={styles.accept}>✅</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => respondToRequest(req.id, false)}>
-                      <Text style={styles.decline}>❌</Text>
-                    </TouchableOpacity>
-                  </View>
-                </>
-              )}
+        <Text style={globalStyles.titleL}>Vrienden</Text>
+        {friends.map(friend => (
+          <View key={`friend-${friend.id}`} style={styles.userCard}>
+            <View style={styles.userInfo}>
+              <Image source={{ uri: friend.avatar_url || `https://api.dicebear.com/9.x/notionists/png?seed=${friend.id}` }} style={styles.avatar} />
+              <Text style={styles.username}>{friend.username}</Text>
             </View>
-          ))}
-
-          <Text style={globalStyles.titleL}>Vrienden</Text>
-          {friends.map(friend => (
-            <View key={friend.id} style={styles.userCard}>
-              <View style={styles.userInfo}>
-                <Image source={{ uri: friend.avatar_url || `https://api.dicebear.com/9.x/notionists/png?seed=${friend.id}` }} style={styles.avatar} />
-                <Text style={styles.username}>{friend.username}</Text>
-              </View>
-              <View>
-                <TouchableOpacity onPress={() => startChat(friend.id)}>
-                  <Text style={styles.chatButton}>💬 Start gesprek</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => reportUser(friend)}>
-                  <Text style={styles.reportButton}>🚨 Meld wangedrag</Text>
-                </TouchableOpacity>
-              </View>
+            <View>
+              <TouchableOpacity onPress={() => startChat(friend.id)}>
+                <Text style={styles.chatButton}>💬 Start gesprek</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => reportUser(friend)}>
+                <Text style={styles.reportButton}>🚨 Meld wangedrag</Text>
+              </TouchableOpacity>
             </View>
-          ))}
-        </View>
+          </View>
+        ))}
       </View>
     </ScrollView>
   );

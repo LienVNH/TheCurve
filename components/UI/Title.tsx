@@ -7,5 +7,5 @@ type Props = {
 };
 
 export default function Title({ children }: Props) {
-  return <Text style={globalStyles.title}>{children}</Text>;
+  return <Text style={globalStyles.titleL}>{children}</Text>;
 }

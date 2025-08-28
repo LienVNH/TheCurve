@@ -14,7 +14,7 @@ export default function SplashScreen() {
   return (
     <View style={[globalStyles.container, { justifyContent: "center", alignItems: "center" }]}>
       <Image
-        source={require("../assets/logo.png")} 
+        source={require("../assets/app_logo.png")} 
         style={{ width: 300, height: 300, marginBottom: 32, resizeMode: "contain" }}
       />
       <ActivityIndicator size="large" color="#1E5128" />

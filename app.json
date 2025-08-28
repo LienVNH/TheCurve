@@ -21,8 +21,10 @@
       }
     },
     "android": {
+      "permissions": [],
+      "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/app_logo.png",
         "backgroundColor": "#EDEDA9"
       },
       "edgeToEdgeEnabled": true,
@@ -43,6 +45,7 @@
       "expo-secure-store",
       "expo-web-browser",
       "expo-font"
-    ]
+    ],
+    "owner": "lienvnh"
   }
 }

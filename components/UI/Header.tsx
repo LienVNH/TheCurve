@@ -4,6 +4,8 @@ import { useRouter } from "expo-router";
 import { theme } from "../../theme/theme";
 import { AuthContext } from "../../context/AuthContext";
 import { supabase } from "../../lib/supabase";
+import { Ionicons } from "@expo/vector-icons";
+
 
 export default function Header({ variant = "default", chatName = "" }: { variant?: "default" | "personal" | "chat"; chatName?: string }) {
   const router = useRouter();
@@ -38,7 +40,7 @@ export default function Header({ variant = "default", chatName = "" }: { variant
           )}
           <Text style={styles.title}>Welkom, {profile?.username || user.email}!</Text>
           <Pressable onPress={handleLogout} style={({ pressed }) => [styles.logoutButton, pressed && styles.logoutPressed]}>
-            <Text style={styles.logoutIcon}>👤</Text>
+            <Ionicons name="log-out-outline" size={20} color="#1B4332" />
           </Pressable>
         </View>
       ) : variant === "chat" ? (
@@ -50,9 +52,9 @@ export default function Header({ variant = "default", chatName = "" }: { variant
         </View>
       ) : (
         <View style={styles.row}>
-          <Image source={require("../../assets/the.png")} style={styles.logo} resizeMode="contain" />
+          <Image source={require("../../assets/logoWHITE.png")} style={styles.logo} resizeMode="contain" />
           <Pressable onPress={handleLogout} style={({ pressed }) => [styles.logoutButton, pressed && styles.logoutPressed]}>
-            <Text style={styles.logoutIcon}>👤</Text>
+            <Ionicons name="log-out-outline" size={20} color="#1B4332" />
           </Pressable>
         </View>
       )}
@@ -63,21 +65,27 @@ export default function Header({ variant = "default", chatName = "" }: { variant
 const styles = StyleSheet.create({
   container: {
     backgroundColor: theme.colors.primary,
-    paddingTop: 40,
-    paddingBottom: 10,
+
+    marginLeft: -25,
+    marginRight: -25,
+    paddingRight: 35,
+    paddingBottom: 15,
     paddingHorizontal: 20,
+    paddingTop: 15,
   },
   row: {
+    width: "100%",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
   logo: {
+    position: "relative",
     width: 120,
     height: 60,
   },
   title: {
-    color: "white", // wordt gebruikt als greet-tekstkleur
+    color: "white",
     fontSize: 18,
     fontWeight: "bold",
     flex: 1,
@@ -92,13 +100,20 @@ const styles = StyleSheet.create({
     borderColor: "white", // kleur komt overeen met begroetingskleur
   },
   logoutButton: {
-    backgroundColor: "primary",
-    borderWidth: 1,
-    borderColor: "#c09e5f", // zachte groene achtergrond
+    backgroundColor: "#F7F7EF",
     borderRadius: 20,
     padding: 6,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 3,
   },
+
   logoutPressed: {
+    borderColor: "#1B4332", // donkergroen bij indrukken
     backgroundColor: "#c09e5f", // iets donkerder groen bij indrukken
   },
   logoutIcon: {

@@ -3,9 +3,9 @@ import { AuthContext } from "../../context/AuthContext";
 import { supabase } from "../../lib/supabase";
 import { Text, View, KeyboardAvoidingView, Platform, ActivityIndicator, StyleSheet, ScrollView } from "react-native";
 import { globalStyles } from "../../theme/globalStyles";
-import Header from "../../components/UI/Header";
+import Headerstart from "../../components/UI/Headerstart";
 import BottomTabs from "../../components/UI/BottomTabs";
-import Posts from "../../components/Posts";
+import Posts from "../../components/TopicChips";
 
 export default function Home() {
   const { user } = useContext(AuthContext);
@@ -37,7 +37,7 @@ export default function Home() {
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
-      <Header variant="personal" />
+      <Headerstart variant="personal" />
 
       <ScrollView contentContainerStyle={[globalStyles.container, { paddingBottom: 100 }]}>
         <View style={styles.welcomeBox}>
@@ -54,7 +54,7 @@ export default function Home() {
           </Text>
         </View>
 
-        <Posts />
+        
       </ScrollView>
 
       <BottomTabs />
@@ -69,7 +69,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   welcomeBox: {
-    backgroundColor: "#c09e5f",
+    backgroundColor: "#e1c38bff",
+    
+    width: "90%",
     padding: 20,
     fontWeight: "bold",
     borderRadius: 16,
