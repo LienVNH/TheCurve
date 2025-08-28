@@ -95,7 +95,7 @@ export default function Auth() {
       keyboardVerticalOffset={Platform.OS === "ios"? 50:100} style={{ flex: 1 }}>
       <View style={[globalStyles.container, { flex: 1, justifyContent: "center" }]}>
         <Animated.View style={{ alignItems: "center", opacity: logoOpacity }}>
-          <Image source={require("../../assets/logo.png")} style={styles.logo} />
+          <Image source={require("../../assets/app_logo.png")} style={styles.logo} />
         </Animated.View>
         
         <Text style={globalStyles.textDark}>E-mailadres</Text>

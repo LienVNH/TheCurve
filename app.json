@@ -24,7 +24,7 @@
       "permissions": [],
       "softwareKeyboardLayoutMode": "resize",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/logo.png",
+        "foregroundImage": "./assets/app_logo.png",
         "backgroundColor": "#EDEDA9"
       },
       "edgeToEdgeEnabled": true,

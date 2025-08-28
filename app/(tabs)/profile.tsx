@@ -71,7 +71,7 @@ export default function ProfileScreen() {
               profile?.avatar_url
                 ? { uri: profile.avatar_url }
                 : // fallback placeholder (pas eventueel aan naar je eigen asset)
-                  require("../../assets/logo.png")
+                  require("../../assets/app_logo.png")
             }
             style={{
               width: 96,
