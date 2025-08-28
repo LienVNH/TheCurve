@@ -7,26 +7,26 @@ It is designed for people with type 1 diabetes to connect, share experiences, an
 
 ### Requirements
 
-* Node.js (>=18)
-* npm or yarn
-* Expo CLI
-* Supabase account
-* `.env` file with API Keys
+- Node.js (>=18)
+- npm or yarn
+- Expo CLI
+- Supabase account
+- `.env` file with API Keys
 
 ### Installation
 
 1. **Clone the repostiory**
 
-```
-	git clone https:// TODO 
+````
+	git clone https:// TODO
 	cd the_curve```
 
-```
+````
 
 2. **Install dependencies**
 
 ```
-npm install 
+npm install
 npm install -g expo-cli
 
 
@@ -36,8 +36,8 @@ npm install -g expo-cli
 >
 > You also need the **Expo Go** app on your iOS or Android phone to preview the app quickly during development:
 >
-> * Android: [https://play.google.com/store/apps/details?id=host.exp.exponent]()
-> * iOS: [https://apps.apple.com/app/expo-go/id982107779]()
+> - Android: [https://play.google.com/store/apps/details?id=host.exp.exponent]()
+> - iOS: [https://apps.apple.com/app/expo-go/id982107779]()
 
 3. **Create a .env file**
 
@@ -50,7 +50,6 @@ EXPO_PUBLIC_SUPABASE_KEY= TODO``
 
 > Note: Variables must start with `EXPO_PUBLIC_` for Expo to recognize them.
 
-
 4. **Start the project**
 
    ```
@@ -60,73 +59,19 @@ EXPO_PUBLIC_SUPABASE_KEY= TODO``
 
    Scan the QR code using the **Expo Go** app on your phone to preview the app.
 
-## Projectstructure
-
-
-.
-
-├── app/                  ➜ Pages and routes via Expo Router
-
-│   ├── index.tsx         ➜ Home screen
-
-│   ├── login.tsx         ➜ Email/password login screen
-
-│   ├── register.tsx      ➜ Email registration screen
-
-│   └── (auth)/providers.tsx ➜ OAuth login (Google/Facebook)
-
-├── components/           ➜ Reusable UI components
-
-│   └── Input.tsx
-
-├── constants/            ➜ Theme colors, configuration
-
-├── hooks/                ➜ Custom React hooks
-
-├── lib/                  ➜ Supabase client and auth helpers
-
-│   ├── supabase.ts
-
-│   └── auth.ts
-
-├── types/                ➜ Global TypeScript types
-
-├── assets/               ➜ Fonts, images, icons
-
-├── app.config.ts         ➜ Expo config with env support
-
-├── .env                  ➜ Sensitive keys
-
-└── README.md             ➜ Project documentation
-
-
-
 ## Authentication
 
-Authentication is powered by **Supabase** using email/password or OAuth (Google/Facebook).
+Authentication is powered by **Supabase** using email/password.
 
 ### Email/Password Login
 
 ```ts
 // Log in using email and password credentials
 await supabase.auth.signInWithPassword({
-  email: 'email@example.com',
-  password: 'password123'
+  email: "email@example.com",
+  password: "password123",
 });
 ```
-
-### OAuth Login (Google/Facebook)
-
-```ts
-// Log in using Google account
-await supabase.auth.signInWithOAuth({ provider: 'google' });
-
-// Log in using Facebook account
-await supabase.auth.signInWithOAuth({ provider: 'facebook' });
-```
-
-
-> You must configure these OAuth providers in the Supabase dashboard and provide redirect URLs. See the official guide: https://supabase.com/docs/guides/auth/social-login
 
 ## Useful Scripts
 
@@ -137,14 +82,11 @@ npm run build     # Build with EAS (optional)
 
 ## TODO
 
-- [X] Supabase integration
-- [X] Email/password login
-- [X] Google/Facebook login
-- [ ] Profile screen
-- [ ] Chat rooms and topic-based posts
-- [ ] User online/offline status
-
-
+- [x] Supabase integration
+- [x] Email/password login
+- [ ] Google/Facebook login
+- [x] Profile screen
+- [x] Chat rooms
 
 ## Resources
 
