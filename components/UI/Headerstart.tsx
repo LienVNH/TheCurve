@@ -51,7 +51,7 @@ export default function Header({ variant = "default", chatName = "" }: { variant
         </View>
       ) : (
         <View style={styles.row}>
-          <Image source={require("../../assets/the.png")} style={styles.logo} resizeMode="contain" />
+          <Image source={require("../../assets/logoWHITE.png")} style={styles.logo} resizeMode="contain" />
           <Pressable onPress={handleLogout} style={({ pressed }) => [styles.logoutButton, pressed && styles.logoutPressed]}>
             <Ionicons name="log-out-outline" size={20} color="#1B4332" />
           </Pressable>
