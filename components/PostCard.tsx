@@ -1,32 +1,141 @@
 import React from "react";
-import { View, Text, Image, StyleSheet, TouchableOpacity } from "react-native";
-import { Post } from "../types/post";
+import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
+import { globalStyles } from "../theme/globalStyles";
+import { theme } from "../theme/theme";
 import { TOPICS } from "../constants/topics";
-import { getLibraryPublicUrl } from "../services/imageLibrary";
+import { TopicChip } from "./TopicChips";
 
-export default function PostCard({ post, onPress }: { post: Post; onPress?: () => void; }) {
-  const topic = TOPICS.find(t => t.key === post.topic);
-  const uri = post.image_url ? getLibraryPublicUrl(post.image_url) : null;
+type Props = { post: any; onPress?: () => void };
+
+export default function PostCard({ post, onPress }: Props) {
+  const authorObj = post?.author ?? post?.profiles ?? null;
+
+  const name: string = authorObj?.username ?? post?.author_username ?? authorObj?.full_name ?? post?.author_full_name ?? "Onbekende gebruiker";
+
+  const avatarUrl: string | null = authorObj?.avatar_url ?? post?.author_avatar_url ?? null;
+
+  const initials =
+    (name || "?")
+      .split(" ")
+      .map((x: string) => x?.[0] || "")
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() || "?";
+
+  const topicKey: string | undefined = post?.topic;
+  const tdef = topicKey ? TOPICS.find(x => x.key === topicKey) : null;
+  const topicLabel = tdef?.label ?? topicKey ?? null;
 
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.9} style={styles.card}>
-      {!!uri && <Image source={{ uri }} style={styles.thumb} />}
-      <View style={{ flex: 1 }}>
-        <View style={styles.topic}><Text style={styles.topicTxt}>{topic?.emoji} {topic?.label}</Text></View>
-        <Text style={styles.title} numberOfLines={2}>{post.title}</Text>
-        {!!post.content && <Text style={styles.excerpt} numberOfLines={2}>{post.content}</Text>}
-        <Text style={styles.date}>{new Date(post.created_at).toLocaleDateString()}</Text>
+    <TouchableOpacity
+      activeOpacity={0.9}
+      onPress={onPress}
+      style={[globalStyles.card, styles.card]} 
+    >
+     
+      <View style={styles.headerRow}>
+        <View style={styles.leftWrap}>
+          {avatarUrl ? (
+            <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+          ) : (
+            <View style={[styles.avatar, styles.avatarFallback]}>
+              <Text style={styles.avatarFallbackTxt}>{initials}</Text>
+            </View>
+          )}
+          <View style={styles.nameCol}>
+            <Text style={[globalStyles.textDark, styles.name]} numberOfLines={1}>
+              {name}
+            </Text>
+            {post?.created_at ? <Text style={styles.meta}>{formatWhen(post.created_at)}</Text> : null}
+          </View>
+        </View>
+
+        {topicLabel ? (
+          <View style={styles.rightWrap}>
+            <TopicChip
+              label={topicLabel}
+              topicKey={topicKey}
+              bgColor={tdef?.color}
+              active
+              disabled
+              size="xs" 
+            />
+          </View>
+        ) : null}
       </View>
+
+      {post?.title ? (
+        <Text style={[globalStyles.titleS, { marginTop: 6 }]} numberOfLines={2}>
+          {post.title}
+        </Text>
+      ) : null}
+      {post?.content ? <Text style={[globalStyles.textDark, { marginTop: 4 }]}>{post.content}</Text> : null}
     </TouchableOpacity>
   );
 }
 
+function formatWhen(iso: string) {
+  const d = new Date(iso);
+  const diff = Math.max(0, Date.now() - d.getTime());
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "zojuist";
+  if (m < 60) return `${m} min geleden`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h} u geleden`;
+  const days = Math.floor(h / 24);
+  return `${days} d geleden`;
+}
+
 const styles = StyleSheet.create({
-  card: { flexDirection: "row", gap: 12, backgroundColor: "#FFF", borderRadius: 14, padding: 12, marginHorizontal: 12, marginVertical: 6, borderWidth: 1, borderColor: "rgba(0,0,0,0.06)" },
-  thumb: { width: 70, height: 70, borderRadius: 10, backgroundColor: "#eee" },
-  topic: { alignSelf: "flex-start", backgroundColor: "#F4F8F2", paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, marginBottom: 6, borderWidth: 1, borderColor: "rgba(0,0,0,0.05)" },
-  topicTxt: { fontSize: 12, fontWeight: "600" },
-  title: { fontSize: 16, fontWeight: "700" },
-  excerpt: { fontSize: 13, marginTop: 2, color: "#555" },
-  date: { fontSize: 12, color: "#777", marginTop: 8 },
+  card: {
+    width: "90%",
+    alignSelf: "center",
+  },
+
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: theme.spacing.sm,
+  },
+  leftWrap: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    flexShrink: 1,
+    minWidth: 0, 
+  },
+  nameCol: {
+    flexShrink: 1,
+    minWidth: 0,
+  },
+  rightWrap: {
+    marginLeft: theme.spacing.sm, 
+    alignItems: "flex-end",
+    justifyContent: "center",
+  },
+  avatar: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: "#EEE",
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+  },
+  avatarFallback: {
+    backgroundColor: theme.colors.backgroundColor,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatarFallbackTxt: {
+    color: theme.colors.primary,
+    fontWeight: "bold",
+  },
+  name: { fontWeight: "bold" },
+  meta: {
+    marginTop: 2,
+    fontSize: theme.font.size.sm,
+    color: theme.colors.textDark,
+    opacity: 0.7,
+  },
 });

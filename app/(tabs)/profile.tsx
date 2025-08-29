@@ -5,13 +5,13 @@ import { theme } from "../../theme/theme";
 import { useRouter } from "expo-router";
 import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../hooks/useAuth";
-
+import { TopicChip } from "../../components/TopicChips";
 
 type Profile = {
   id: string;
   username: string | null;
-  birthdate: string | null; 
-  since_diabetes: string | null; 
+  birthdate: string | null;
+  since_diabetes: string | null;
   interests: string[] | null;
   avatar_url: string | null;
   onboarding_complete?: boolean | null;
@@ -29,11 +29,7 @@ export default function ProfileScreen() {
     if (!user) return;
     (async () => {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id) 
-        .single();
+      const { data, error } = await supabase.from("profiles").select("*").eq("id", user.id).single();
 
       if (error) Alert.alert("Fout", error.message);
       setProfile(data as Profile);
@@ -67,12 +63,7 @@ export default function ProfileScreen() {
       <View style={[globalStyles.container, { paddingTop: 40, paddingBottom: 40 }]}>
         <View style={{ alignItems: "center", marginBottom: 16 }}>
           <Image
-            source={
-              profile?.avatar_url
-                ? { uri: profile.avatar_url }
-                : // fallback placeholder (pas eventueel aan naar je eigen asset)
-                  require("../../assets/app_logo.png")
-            }
+            source={profile?.avatar_url ? { uri: profile.avatar_url } : require("../../assets/app_logo.png")}
             style={{
               width: 96,
               height: 96,
@@ -94,19 +85,9 @@ export default function ProfileScreen() {
         <View style={{ flexDirection: "row", flexWrap: "wrap", marginTop: 6 }}>
           {(profile?.interests ?? []).length ? (
             (profile?.interests ?? []).map(i => (
-              <View
-                key={i}
-                style={{
-                  borderRadius: 16,
-                  paddingHorizontal: 10,
-                  paddingVertical: 6,
-                  margin: 4,
-                  borderWidth: 1,
-                  borderColor: theme.colors.tagBorders.active,
-                  backgroundColor: theme.colors.backgroundColor?.[i as any] ?? "#F2F0E6",
-                }}
-              >
-                <Text style={{ color: "#000" }}>{i}</Text>
+              <View key={i} style={{ margin: 4 }}>
+               
+                <TopicChip label={i} active disabled size="sm" />
               </View>
             ))
           ) : (

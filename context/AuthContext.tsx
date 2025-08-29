@@ -2,7 +2,6 @@ import { createContext, useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 import { AppUser } from "../types/user";
 
-// Types
 type AuthContextType = {
   user: AppUser | null;
   loading: boolean;
@@ -18,7 +17,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 1. Huidige gebruiker ophalen
+    // Huidige gebruiker ophalen
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         setUser({
@@ -29,7 +28,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     });
 
-    // 2. Auth state changes volgen
+    // Auth state changes volgen
     const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         setUser({
@@ -42,7 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => {
-      authListener?.subscription.unsubscribe(); // ✅ correcte unsubscribe
+      authListener?.subscription.unsubscribe(); 
     };
   }, []);
 

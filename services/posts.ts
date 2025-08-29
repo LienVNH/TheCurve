@@ -35,8 +35,28 @@ export async function createPost({
     user_id: userId,
     title: title.trim(),
     content: content?.trim() || null,
-    image_url: imagePath || null, // STORAGE PAD
+    image_url: imagePath || null,
     topic,
   });
   if (error) throw error;
+}
+
+export type AuthorProfile = {
+  id: string;
+  username: string | null;
+  avatar_url: string | null;
+};
+export type PostWithAuthor = Post & { author?: AuthorProfile | null };
+
+export async function fetchPostsWithAuthor(args: { topic?: Topic | "all"; search?: string; page?: number }): Promise<PostWithAuthor[]> {
+  const rows = await fetchPosts(args);
+  const ids = Array.from(new Set(rows.map(r => r.user_id).filter(Boolean))) as string[];
+
+  if (ids.length === 0) return rows as PostWithAuthor[];
+  const { data: profiles, error: profErr } = await supabase.from("profiles").select("id, username, avatar_url").in("id", ids);
+
+  if (profErr) throw profErr;
+
+  const map = new Map<string, AuthorProfile>((profiles ?? []).map(p => [p.id, p as AuthorProfile]));
+  return rows.map(r => ({ ...(r as PostWithAuthor), author: map.get(r.user_id) || null }));
 }
